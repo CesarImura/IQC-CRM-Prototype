@@ -1,0 +1,218 @@
+@import "tailwindcss";
+@import "../../design-system/registry/iq/styles/tokens.css";
+
+/* Design system components live outside this app; let Tailwind see their classes. */
+@source "../../design-system/registry/iq/ui";
+
+@theme inline {
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+  --color-canvas: var(--surface-canvas);
+  --color-grid: var(--border-grid);
+  --color-brand: var(--button-primary-bg-default);
+  --color-focus: var(--focus-ring);
+}
+
+html,
+body {
+  height: 100%;
+}
+
+body {
+  background: var(--surface-canvas);
+  color: var(--content-default);
+}
+
+/* ---- Copied from design-system/app/globals.css (DS base styles that aren't in tokens.css) ---- */
+
+/* Native scrollbars follow the DS Scroll Bar: invisible track, 8px gutter with a 4px thumb inset 2px from the
+   sides and the ends (transparent border + padding-box clip), square (0 radius), solid neutral 600 / 500 / 400 (no transparency over content). */
+::-webkit-scrollbar {
+  width: var(--scroll-bar-size);
+  height: var(--scroll-bar-size);
+}
+
+::-webkit-scrollbar-track,
+::-webkit-scrollbar-corner {
+  background: transparent;
+}
+
+::-webkit-scrollbar-button {
+  display: none;
+}
+
+::-webkit-scrollbar-thumb {
+  border: var(--scroll-bar-inset) solid transparent;
+  background-clip: padding-box;
+  border-radius: var(--scroll-bar-radius);
+  background-color: var(--scroll-bar-thumb);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background-color: var(--scroll-bar-thumb-hover);
+}
+
+::-webkit-scrollbar-thumb:active {
+  background-color: var(--scroll-bar-thumb-drag);
+}
+
+/* Firefox has no ::-webkit-scrollbar; in Chrome these properties would override the rules above. */
+@supports not selector(::-webkit-scrollbar) {
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: var(--scroll-bar-thumb) transparent;
+  }
+}
+
+::selection {
+  background: color-mix(in srgb, var(--button-primary-bg-default) 40%, transparent);
+}
+
+
+/* Skeleton pulse (Figma: 2s loop, white/8 → white/16 → white/8, hold). Also shipped in the @iq/skeleton registry item. */
+@keyframes skeleton-pulse {
+  0%,
+  80%,
+  100% {
+    background-color: var(--skeleton-bone);
+  }
+  40% {
+    background-color: var(--skeleton-bone-pulse);
+  }
+}
+
+/* Toast progress (runs out over the toast's duration) and Loading's back-and-forth bar. Also shipped in @iq/toast. */
+@keyframes toast-progress {
+  from {
+    transform: scaleX(1);
+  }
+  to {
+    transform: scaleX(0);
+  }
+}
+@keyframes toast-indeterminate {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(250%);
+  }
+}
+
+/* Tooltip enter / exit: fade, 4px slide toward the trigger, slight scale from the caret. Also shipped in @iq/tooltip. */
+@keyframes tooltip-in {
+  from {
+    opacity: 0;
+    transform: translate(var(--tooltip-slide-x, 0), var(--tooltip-slide-y, 0)) scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: translate(0, 0) scale(1);
+  }
+}
+@keyframes tooltip-out {
+  from {
+    opacity: 1;
+    transform: translate(0, 0) scale(1);
+  }
+  to {
+    opacity: 0;
+    transform: translate(var(--tooltip-slide-x, 0), var(--tooltip-slide-y, 0)) scale(0.96);
+  }
+}
+
+/* Selection Bar enter / exit: 8px slide + fade. Also shipped in @iq/selection-bar. */
+@keyframes selection-bar-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+@keyframes selection-bar-out {
+  from {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+}
+
+/* Docs mobile menu: drawer slides in from the left over a fading overlay. */
+@keyframes drawer-in {
+  from {
+    transform: translateX(-100%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+@keyframes drawer-out {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-100%);
+  }
+}
+@keyframes overlay-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+@keyframes overlay-out {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+
+/* Modal enter / exit: fade + 8px rise + slight scale (the centering uses the separate translate property). Also shipped in @iq/modal. Backdrop reuses overlay-in / out. */
+@keyframes modal-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@keyframes modal-out {
+  from {
+    opacity: 1;
+    transform: none;
+  }
+  to {
+    opacity: 0;
+    transform: translateY(8px) scale(0.98);
+  }
+}
+
+/* Tray enter / exit: slide in from the right edge. Also shipped in @iq/tray. */
+@keyframes tray-in {
+  from {
+    transform: translateX(100%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+@keyframes tray-out {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(100%);
+  }
+}

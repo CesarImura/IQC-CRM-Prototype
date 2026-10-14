@@ -1,0 +1,9 @@
+{
+  "name": "iqc-crm-workspace",
+  "private": true,
+  "workspaces": ["design-system", "prototype"],
+  "scripts": {
+    "dev": "npm run dev -w prototype",
+    "dev:ds": "npm run dev -w design-system"
+  }
+}

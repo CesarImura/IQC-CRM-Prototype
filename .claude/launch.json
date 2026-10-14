@@ -1,0 +1,17 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "prototype",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["run", "dev", "-w", "prototype"],
+      "port": 3001
+    },
+    {
+      "name": "docs",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["run", "dev", "-w", "design-system"],
+      "port": 3000
+    }
+  ]
+}
