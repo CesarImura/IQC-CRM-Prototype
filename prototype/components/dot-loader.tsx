@@ -57,8 +57,8 @@ export function DotLoader({ label = "Loading", className }: { label?: string; cl
 export function BootLoader() {
   const [state, setState] = React.useState<"on" | "leaving" | "off">("on")
   React.useEffect(() => {
-    const leave = window.setTimeout(() => setState("leaving"), 650)
-    const off = window.setTimeout(() => setState("off"), 1050)
+    const leave = window.setTimeout(() => setState("leaving"), 0)
+    const off = window.setTimeout(() => setState("off"), 250)
     return () => {
       window.clearTimeout(leave)
       window.clearTimeout(off)
@@ -68,7 +68,7 @@ export function BootLoader() {
   return (
     <div
       className={cn(
-        "fixed inset-0 z-[100] flex items-center justify-center bg-(--surface-canvas) transition-opacity duration-400 ease-out",
+        "fixed inset-0 z-[100] flex items-center justify-center bg-(--surface-canvas) transition-opacity duration-200 ease-out [animation:boot-in_200ms_300ms_both]",
         state === "leaving" && "pointer-events-none opacity-0"
       )}
     >

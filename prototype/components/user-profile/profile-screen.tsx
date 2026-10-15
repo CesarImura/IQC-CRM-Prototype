@@ -2,7 +2,7 @@
 
 import * as React from "react"
 import Link from "next/link"
-import { usePathname, useRouter, useSearchParams } from "next/navigation"
+import { usePathname, useSearchParams } from "next/navigation"
 import { Add, ArrowLeft, Checkmark, Close, CloseOutline, Download, Login, Misuse, Purchase, Renew, UserIdentification } from "@carbon/icons-react"
 
 import type { User } from "@/lib/users/data"
@@ -55,7 +55,6 @@ function ProfileActions({ user, compact = false, onNewAccount }: { user: User; c
 }
 
 export function ProfileScreen({ user }: { user: User }) {
-  const router = useRouter()
   const pathname = usePathname()
   const params = useSearchParams()
   const tab = (PROFILE_TABS.some((t) => t.value === params.get("tab")) ? params.get("tab") : "overview") as ProfileTab
@@ -65,7 +64,8 @@ export function ProfileScreen({ user }: { user: User }) {
     const next = new URLSearchParams(params)
     if (value === "overview") next.delete("tab")
     else next.set("tab", value)
-    router.replace(`${pathname}${next.size ? `?${next}` : ""}`, { scroll: false })
+    // Native history keeps useSearchParams in sync without a server round trip, so tabs switch instantly.
+    window.history.replaceState(null, "", `${pathname}${next.size ? `?${next}` : ""}`)
   }
 
   // Compact header (Figma: Profile Header · Compact): appears once the profile tabs scroll out of view.

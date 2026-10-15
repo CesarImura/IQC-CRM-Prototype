@@ -45,6 +45,7 @@ export function UsersScreen() {
   const [overrides, setOverrides] = React.useState<Overrides>({ added: [], patched: new Map() })
   const [banTarget, setBanTarget] = React.useState<User | null>(null)
   const [addOpen, setAddOpen] = React.useState(false)
+  const prefetched = React.useRef(new Set<string>())
 
   // Typing in search re-runs the query over ~64k rows; let React keep the input responsive.
   const deferredFilters = React.useDeferredValue(filters)
@@ -148,7 +149,20 @@ export function UsersScreen() {
   }
 
   return (
-    <div data-page className="flex min-h-full flex-col">
+    <div
+      data-page
+      className="flex min-h-full flex-col"
+      onPointerOver={(e) => {
+        // Warm the profile while the pointer is on its row, so the click opens it from cache.
+        const tr = (e.target as HTMLElement).closest("tbody tr")
+        if (!tr || !tr.parentElement) return
+        const user = result.rows[Array.prototype.indexOf.call(tr.parentElement.children, tr)]
+        if (user && !prefetched.current.has(user.id)) {
+          prefetched.current.add(user.id)
+          router.prefetch(`/customers/users/${user.id}`)
+        }
+      }}
+    >
       <PageHeader
         title="Users"
         actions={

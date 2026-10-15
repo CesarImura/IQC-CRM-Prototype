@@ -2,6 +2,15 @@ import { Empty } from "@/registry/iq/ui/empty"
 import { PageHeader } from "@/registry/iq/ui/page-header"
 import { allSections } from "@/lib/nav"
 
+// Every nav destination is built at deploy time and served from the CDN, so menu clicks don't wait for a server render.
+export const dynamicParams = true
+export function generateStaticParams() {
+  return allSections
+    .flatMap((s) => [s.href, ...s.groups.flatMap((g) => g.links.map((l) => l.href))])
+    .filter((href) => href.startsWith("/") && href !== "/customers/users" && href !== "/")
+    .map((href) => ({ slug: href.split("/").filter(Boolean) }))
+}
+
 // Every other nav destination: a placeholder until the screen is redesigned.
 export default async function PlaceholderPage({ params }: PageProps<"/[...slug]">) {
   const { slug } = await params

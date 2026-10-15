@@ -496,3 +496,7 @@ tbody tr[tabindex] {
   border-left-color: transparent;
 }
 /* r8 */
+/* Boot loader: invisible for the first 300 ms, so fast loads never flash it. */
+@keyframes boot-in {
+  from { opacity: 0; }
+}
