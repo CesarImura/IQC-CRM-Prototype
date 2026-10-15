@@ -121,7 +121,7 @@ export function UsersToolbar({ filters, onFiltersChange, countFor, exportMenu }:
                 aria-label="Clear more filters"
                 title="Clear more filters"
                 onClick={() => onFiltersChange({ ...filters, roles: [], affiliate: "any", affiliateEmail: "", utm: [] })}
-                className="inline-flex h-(--button-size-sm-height) cursor-pointer items-center rounded-r-(--button-radius-control) border border-l-0 border-(--filter-chip-border-selected) bg-(--button-secondary-bg-default) pr-2.5 pl-1 text-(color:--badge-dismiss) outline-none hover:text-(color:--content-default) focus-visible:shadow-[0_0_0_var(--focus-spread)_var(--focus-ring)]"
+                className="relative -ml-px inline-flex h-(--button-size-sm-height) cursor-pointer items-center rounded-r-(--button-radius-control) border border-l-0 border-(--filter-chip-border-selected) bg-(--button-secondary-bg-default) pr-2.5 pl-1 text-(color:--badge-dismiss) outline-none hover:text-(color:--content-default) focus-visible:shadow-[0_0_0_var(--focus-spread)_var(--focus-ring)]"
               >
                 <Close size={16} />
               </button>

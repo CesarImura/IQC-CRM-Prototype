@@ -150,7 +150,7 @@ export function UsersScreen() {
 
   return (
     <div
-      data-page
+      data-page="flush"
       className="flex min-h-full flex-col"
       onPointerOver={(e) => {
         // Warm the profile while the pointer is on its row, so the click opens it from cache.

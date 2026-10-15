@@ -152,7 +152,7 @@ function Engagement() {
         </div>
         <div key={range} className={cn("flex flex-col px-6 pt-5 pb-5", range === "all" ? "gap-6" : "gap-3")}>
           {range === "all" ? (
-            <YearCalendar weeks={weeks} starts={starts} />
+            <YearCalendar days={calendar} starts={starts} />
           ) : (
             <DayStrip days={visible} />
           )}
@@ -185,14 +185,94 @@ function Engagement() {
   )
 }
 
-/** All: the Figma year calendar, 52 weeks × 7 days with month labels on top and Mon/Wed/Fri on the left. */
-function YearCalendar({ weeks, starts }: { weeks: number[][]; starts: number[] }) {
+/* Day tooltip: the DS _Chart / Tooltip (balance range chart) — canvas surface, radius 4, 16px date, items with a 4px
+   colour bar, label at 32%, value at 80%. Anchored beside the hovered day (flips near the right edge, sits above it in
+   the lower half), glides between days and cross-fades its content. */
+const LEVEL_NAMES = ["No activity", "Low", "Medium", "High", "Very high"]
+type DayHover = { day: Day; x: number; y: number; w: number; h: number }
+
+function useDayHover() {
+  const ref = React.useRef<HTMLDivElement>(null)
+  const [hover, setHover] = React.useState<DayHover | null>(null)
+  const [last, setLast] = React.useState<DayHover | null>(null)
+  const [box, setBox] = React.useState({ width: 0, height: 0 })
+  // offset* are in the container's own (unzoomed) pixels, so the tooltip lines up under the 90% UI zoom too.
+  const enter = (day: Day) => (e: React.MouseEvent<HTMLElement>) => {
+    const el = e.currentTarget
+    const next = { day, x: el.offsetLeft, y: el.offsetTop, w: el.offsetWidth, h: el.offsetHeight }
+    if (ref.current) setBox({ width: ref.current.offsetWidth, height: ref.current.offsetHeight })
+    setHover(next)
+    setLast(next)
+  }
+  const leave = () => setHover(null)
+  const tooltip = last && <DayTooltip hover={last} visible={hover !== null} box={box} />
+  return { ref, hover, enter, leave, tooltip }
+}
+
+function DayTooltip({ hover, visible, box }: { hover: DayHover; visible: boolean; box: { width: number; height: number } }) {
+  const flip = hover.x + hover.w + 12 + 210 > box.width
+  const below = hover.y + hover.h / 2 < box.height / 2
+  const { day } = hover
+  const date = new Date(day.t)
   return (
     <div
-      className="grid gap-[4px]"
-      style={{ gridTemplateColumns: `29px repeat(${weeks.length}, minmax(0,1fr))` }}
+      aria-hidden="true"
+      className="pointer-events-none absolute z-20 transition-[left,top,opacity] duration-200 ease-[cubic-bezier(0.16,1,0.3,1)]"
+      style={{
+        left: flip ? hover.x - 12 : hover.x + hover.w + 12,
+        top: below ? hover.y - 4 : hover.y + hover.h + 4,
+        opacity: visible ? 1 : 0,
+      }}
+    >
+      <div
+        className="flex min-w-[195px] flex-col gap-1.5 rounded-(--chart-tooltip-radius) bg-(--chart-tooltip-bg) px-4 py-3.5 shadow-[0_0_0_1px_var(--border-divider),0_12px_32px_rgba(0,0,0,0.5)] transition-transform duration-200 ease-[cubic-bezier(0.16,1,0.3,1)]"
+        style={{
+          transform: `translate(${flip ? "-100%" : "0"}, ${below ? "0" : "-100%"}) scale(${visible ? 1 : 0.94})`,
+          transformOrigin: `${flip ? "right" : "left"} ${below ? "top" : "bottom"}`,
+          animation: "tooltip-pop 260ms cubic-bezier(0.16,1,0.3,1) both",
+        }}
+      >
+        <div key={day.t} className="flex flex-col gap-1.5 [animation:tooltip-swap_220ms_cubic-bezier(0.16,1,0.3,1)_both]">
+          <p className="text-base leading-normal whitespace-nowrap text-(color:--chart-tooltip-date)">
+            {date.toLocaleDateString("en-GB", { weekday: "short", timeZone: "UTC" })} · {shortDate(day.t)} {date.getUTCFullYear()}
+          </p>
+          <TooltipItem color={day.level ? `color-mix(in srgb, var(--accent) ${LEVEL_OPACITY[day.level] * 100}%, transparent)` : "#3a3d3c"} label="Activity" value={LEVEL_NAMES[day.level]} />
+          <TooltipItem color="var(--chart-series-1)" label="Sessions" value={String(day.sessions)} />
+          <TooltipItem color="var(--chart-series-2)" label="Trades" value={String(day.trades)} />
+        </div>
+      </div>
+    </div>
+  )
+}
+
+function TooltipItem({ color, label, value }: { color: string; label: string; value: string }) {
+  return (
+    <div className="flex items-center gap-2 text-base leading-normal whitespace-nowrap">
+      <span aria-hidden="true" className="h-[21px] w-1 shrink-0 rounded-[2px]" style={{ background: color }} />
+      <span className="text-(color:--chart-tooltip-label)">{label}</span>
+      <span className="ml-auto pl-4 font-medium text-(color:--chart-tooltip-value)">{value}</span>
+    </div>
+  )
+}
+
+/** Hovered day lifts a little and gets a light ring; the rest dims, so the eye lands on it. */
+const cellHoverStyle = (level: number, on: boolean, dim: boolean): React.CSSProperties => ({
+  ...dayStyle(level),
+  ...(dim && level ? { opacity: LEVEL_OPACITY[level] * 0.55 } : null),
+  ...(on ? { transform: "scale(1.18)", boxShadow: "0 0 0 1px rgba(255,255,255,0.85)", zIndex: 1, position: "relative" as const } : null),
+})
+
+/** All: the Figma year calendar, 52 weeks × 7 days with month labels on top and Mon/Wed/Fri on the left. */
+function YearCalendar({ days, starts }: { days: Day[]; starts: number[] }) {
+  const { ref, hover, enter, leave, tooltip } = useDayHover()
+  return (
+    <div
+      ref={ref}
+      className="relative grid gap-[4px]"
+      style={{ gridTemplateColumns: `29px repeat(${starts.length}, minmax(0,1fr))` }}
       role="img"
       aria-label="Active days over the last 12 months"
+      onMouseLeave={leave}
     >
       {starts.map((t, i) => {
         const d = new Date(t)
@@ -209,69 +289,49 @@ function YearCalendar({ weeks, starts }: { weeks: number[][]; starts: number[] }
           {d}
         </span>
       ))}
-      {weeks.flatMap((week, w) =>
-        week.map((level, d) => (
+      {days.map((day, i) => {
+        const w = Math.floor(i / 7)
+        return (
           <span
-            key={`${w}-${d}`}
-            title={`${shortDate(starts[w] + d * DAY_MS)} · ${level ? "active" : "no activity"}`}
-            className="aspect-square rounded-[2px]"
-            style={{ gridColumnStart: w + 2, gridRowStart: d + 2, ...dayStyle(level), animation: `cell-in 420ms ${w * 9}ms cubic-bezier(0.16,1,0.3,1) both` }}
+            key={day.t}
+            onMouseEnter={enter(day)}
+            className="aspect-square rounded-[2px] transition-[opacity,transform,box-shadow] duration-200 ease-[cubic-bezier(0.16,1,0.3,1)]"
+            style={{
+              gridColumnStart: w + 2,
+              gridRowStart: day.weekday + 2,
+              ...cellHoverStyle(day.level, hover?.day.t === day.t, hover !== null && hover.day.t !== day.t),
+              animation: `cell-in 420ms ${w * 9}ms cubic-bezier(0.16,1,0.3,1) both`,
+            }}
           />
-        ))
-      )}
+        )
+      })}
+      {tooltip}
     </div>
   )
 }
 
-const tooltipClass =
-  "pointer-events-none absolute top-full z-10 mt-1 w-[168px] -translate-x-1/2 rounded-[4px] border border-(--option-panel-border) bg-(--option-panel-bg) p-3 shadow-[0_8px_24px_rgba(0,0,0,0.45)] backdrop-blur-(--option-panel-blur) transition-[left] duration-150 ease-out"
-
-/** 90 / 60 days: one band per series, 24 contiguous hour cells, tooltip on hover (reference: activity heatmap video). */
 /** 30 / 60 / 90 days: one square per day in rows of 30 (oldest row on top, today last), levels from the year
- *  calendar, tooltip with the day's sessions and trades. Same look for every short range. */
+ *  calendar, tooltip with the day's activity, sessions and trades. Same look for every short range. */
 function DayStrip({ days }: { days: Day[] }) {
-  const [hover, setHover] = React.useState<{ r: number; c: number } | null>(null)
-  const weekday = (t: number) => new Date(t).toLocaleDateString("en-GB", { weekday: "short", timeZone: "UTC" })
+  const { ref, hover, enter, leave, tooltip } = useDayHover()
   const rows = Array.from({ length: Math.ceil(days.length / 30) }, (_, r) => days.slice(r * 30, r * 30 + 30))
-  const hovered = hover ? rows[hover.r][hover.c] : null
   return (
     <>
       <p className="text-[13px] font-medium text-(color:--content-default)">Active days · last {days.length} days</p>
-      <div className="flex flex-col gap-[6px]" onMouseLeave={() => setHover(null)}>
+      <div ref={ref} className="relative flex flex-col gap-[6px]" onMouseLeave={leave}>
         {rows.map((row, r) => (
-          <div key={r} className="relative">
-            <div className="grid grid-cols-[repeat(30,minmax(0,1fr))] gap-[4px]">
-              {row.map((d, c) => {
-                const on = hover?.r === r && hover.c === c
-                return (
-                  <span
-                    key={d.t}
-                    onMouseEnter={() => setHover({ r, c })}
-                    className="aspect-square rounded-[2px] transition-[opacity,box-shadow] duration-200 ease-out"
-                    style={{
-                      ...dayStyle(d.level),
-                      ...(hover && !on && d.level ? { opacity: LEVEL_OPACITY[d.level] * 0.55 } : null),
-                      boxShadow: on ? "inset 0 0 0 1px rgba(255,255,255,0.7)" : undefined,
-                      animation: `cell-in 420ms ${(r * 30 + c) * 8}ms cubic-bezier(0.16,1,0.3,1) both`,
-                    }}
-                  />
-                )
-              })}
-            </div>
-            {on(hover, r) && hovered && (
-              <div role="tooltip" className={cn(tooltipClass, "mt-1")} style={{ left: `${((hover!.c + 0.5) / 30) * 100}%` }}>
-                <p className="flex items-center justify-between text-xs text-(color:--content-secondary)">
-                  Sessions <span className="font-medium text-(color:--content-default)">{hovered.sessions}</span>
-                </p>
-                <p className="flex items-center justify-between text-xs text-(color:--content-secondary)">
-                  Trades <span className="font-medium text-(color:--content-default)">{hovered.trades}</span>
-                </p>
-                <p className="mt-2 flex justify-between border-t border-(--border-divider) pt-2 text-[11px] text-(color:--content-tertiary)">
-                  {weekday(hovered.t)}
-                  <span>{shortDate(hovered.t)}</span>
-                </p>
-              </div>
-            )}
+          <div key={r} className="grid grid-cols-[repeat(30,minmax(0,1fr))] gap-[4px]">
+            {row.map((d, c) => (
+              <span
+                key={d.t}
+                onMouseEnter={enter(d)}
+                className="aspect-square rounded-[2px] transition-[opacity,transform,box-shadow] duration-200 ease-[cubic-bezier(0.16,1,0.3,1)]"
+                style={{
+                  ...cellHoverStyle(d.level, hover?.day.t === d.t, hover !== null && hover.day.t !== d.t),
+                  animation: `cell-in 420ms ${(r * 30 + c) * 8}ms cubic-bezier(0.16,1,0.3,1) both`,
+                }}
+              />
+            ))}
           </div>
         ))}
         <div className="relative h-4 text-[11px] text-(color:--content-tertiary)">
@@ -283,12 +343,11 @@ function DayStrip({ days }: { days: Day[] }) {
             ) : null
           )}
         </div>
+        {tooltip}
       </div>
     </>
   )
 }
-
-const on = (hover: { r: number } | null, r: number) => hover !== null && hover.r === r
 
 /* ---------------------------------- Account logs ---------------------------------- */
 

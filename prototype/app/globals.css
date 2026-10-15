@@ -393,7 +393,8 @@ html[data-input="pointer"] :is(button, a, [role="tab"], [role="checkbox"], [role
 
 /* Row actions column (⋮): a visible stroke on its left edge, in every table. */
 [data-slot="data-table"] :is(th, td).sticky.right-0 {
-  box-shadow: -1px 0 0 #2e3130;
+  border-left-color: #2e3130;
+  box-shadow: none;
 }
 
 
@@ -482,7 +483,7 @@ tbody tr[tabindex] {
 }
 
 /* One stroke between the Sub Menu and the content: the Sub Menu draws it; content blocks drop their left stroke. */
-[data-slot="sub-menu"] + div > [data-page] :is(
+[data-slot="sub-menu"] + div > [data-page="flush"] :is(
   section[aria-label="Key numbers"] > :first-child,
   [data-slot="tabs-line-list"],
   [data-slot="toolbar"],
@@ -492,7 +493,7 @@ tbody tr[tabindex] {
 ) {
   border-left-color: transparent;
 }
-[data-slot="sub-menu"] + div > [data-page] [data-slot="data-table"] :is(th, td):first-child {
+[data-slot="sub-menu"] + div > [data-page="flush"] [data-slot="data-table"] :is(th, td):first-child {
   border-left-color: transparent;
 }
 /* r8 */
@@ -506,3 +507,36 @@ tbody tr[tabindex] {
 /* No blinking text caret on clicked labels, cells or titles (caret browsing / focusable text); only real fields show it. */
 body { caret-color: transparent; }
 input, textarea, select, [contenteditable]:not([contenteditable="false"]) { caret-color: auto; }
+/* r10 · chart day tooltip motion */
+@keyframes tooltip-pop {
+  from { opacity: 0; scale: 0.9; }
+}
+@keyframes tooltip-swap {
+  from { opacity: 0.35; translate: 0 3px; }
+}
+/* r10 · Option panels, menus and filter panels open with motion (and fade out), never "dry". */
+[data-radix-popper-content-wrapper] > [data-state="open"] {
+  animation: popover-in 200ms cubic-bezier(0.16, 1, 0.3, 1);
+  transform-origin: var(--radix-popover-content-transform-origin, top);
+}
+[data-radix-popper-content-wrapper] > [data-state="open"][data-side="top"] {
+  animation-name: popover-in-up;
+}
+[data-radix-popper-content-wrapper] > [data-state="closed"] {
+  animation: popover-out 120ms ease-in forwards;
+}
+@keyframes popover-in {
+  from { opacity: 0; transform: translateY(-6px) scale(0.97); }
+}
+@keyframes popover-in-up {
+  from { opacity: 0; transform: translateY(6px) scale(0.97); }
+}
+@keyframes popover-out {
+  to { opacity: 0; transform: translateY(-3px) scale(0.98); }
+}
+[data-radix-popper-content-wrapper] [data-slot="option-panel"] [cmdk-item] {
+  animation: option-in 260ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+@keyframes option-in {
+  from { opacity: 0; transform: translateY(-3px); }
+}
