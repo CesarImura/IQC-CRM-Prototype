@@ -148,7 +148,7 @@ export function UsersScreen() {
   }
 
   return (
-    <div className="flex min-h-full flex-col">
+    <div data-page className="flex min-h-full flex-col">
       <PageHeader
         title="Users"
         actions={

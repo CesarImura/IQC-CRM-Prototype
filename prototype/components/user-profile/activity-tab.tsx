@@ -3,7 +3,7 @@
 import * as React from "react"
 import { Calendar, Laptop, Mobile, Screen } from "@carbon/icons-react"
 
-import { accountLogs, activity, engagement, heatmap, sessions, staffLogs, weekdays, type AccountLog, type ActivityEvent } from "@/lib/users/profile"
+import { accountLogs, activity, engagement, sessions, staffLogs, weekdays, type AccountLog, type ActivityEvent } from "@/lib/users/profile"
 import { cn } from "@/lib/utils"
 import { Badge, DeltaBadge } from "@/registry/iq/ui/badge"
 import { Button } from "@/registry/iq/ui/button"
@@ -49,58 +49,54 @@ export function ActivityTab() {
 // Figma (User Profile · Activity → Card · Engagement): 21px days on a 26px pitch, radius 2.27; L0 #1f2221, L1–L4 accent at
 // 30 / 50 / 72 / 100%. Stats 108px tall, 24/18 padding, 13px labels, 20px Medium values.
 const EMPTY_DAY = "#1f2221"
-const LEVEL_OPACITY = [1, 0.3, 0.5, 0.72, 1]
-const dayStyle = (level: number): React.CSSProperties =>
-  level === 0 ? { background: EMPTY_DAY } : { background: "var(--accent)", opacity: LEVEL_OPACITY[level] }
 
 const RANGES = [
-  { value: "all", label: "All", weeks: 52 },
-  { value: "90", label: "90 days", weeks: 13 },
-  { value: "60", label: "60 days", weeks: 9 },
-  { value: "30", label: "30 days", weeks: 5 },
+  { value: "all", label: "All", days: 365 },
+  { value: "90", label: "90 days", days: 90 },
+  { value: "60", label: "60 days", days: 60 },
+  { value: "30", label: "30 days", days: 30 },
 ] as const
 type RangeValue = (typeof RANGES)[number]["value"]
-const DAY_MS = 86_400_000
-// Monday of the week of the prototype's "today" (14 Oct 2026).
-const LAST_WEEK_START = Date.UTC(2026, 9, 12)
-const shortDate = (t: number) => new Date(t).toLocaleDateString("en-GB", { day: "2-digit", month: "short", timeZone: "UTC" })
+const HOURS = Array.from({ length: 24 }, (_, h) => h)
+
+// Hour-of-day activity for the trader (logins, trades) and for staff (actions on this profile), in UTC.
+// Deterministic so the chart doesn't change between renders.
+function hourly(days: number) {
+  const bump = (h: number, center: number, width: number) => Math.exp(-((h - center) ** 2) / (2 * width ** 2))
+  const noise = (h: number, s: number) => {
+    const x = Math.sin(h * 12.9898 + s * 78.233) * 43758.5453
+    return x - Math.floor(x)
+  }
+  const scale = days / 30
+  return {
+    trader: HOURS.map((h) => Math.round((bump(h, 14, 3.2) * 40 + bump(h, 21, 1.6) * 12 + noise(h, 1) * 4) * scale)),
+    staff: HOURS.map((h) => Math.round((h >= 8 && h <= 19 ? bump(h, 12.5, 2.6) * 22 + noise(h, 2) * 3 : noise(h, 3) * 1.2) * scale)),
+  }
+}
+
+const SERIES = [
+  { key: "trader", label: "Trader", color: "var(--accent)" },
+  { key: "staff", label: "Staff", color: "var(--status-dot-info)" },
+] as const
 
 function Engagement() {
   const [range, setRange] = React.useState<RangeValue>("all")
-  const all = React.useMemo(() => heatmap(), [])
-  const weeksCount = RANGES.find((r) => r.value === range)?.weeks ?? 52
-  const weeks = all.slice(all.length - weeksCount)
-  const starts = weeks.map((_, i) => LAST_WEEK_START - (weeksCount - 1 - i) * 7 * DAY_MS)
+  const [hover, setHover] = React.useState<number | null>(null)
+  const days = RANGES.find((r) => r.value === range)?.days ?? 365
+  const data = React.useMemo(() => hourly(days), [days])
+  const max = Math.max(...data.trader, ...data.staff, 1)
+  const peak = data.trader.indexOf(Math.max(...data.trader))
 
-  // Every number is read from the visible weeks, so stats, grid and weekday bars always agree.
-  const days = weeks.flat()
-  const active = days.filter((l) => l > 0).length
-  let streak = 0
-  let best = 0
-  let bestEnd = 0
-  weeks.forEach((w, wi) =>
-    w.forEach((l, d) => {
-      streak = l > 0 ? streak + 1 : 0
-      if (streak > best) {
-        best = streak
-        bestEnd = starts[wi] + d * DAY_MS
-      }
-    })
-  )
-  const byDay = weekdays.map((w, d) => ({ day: w.day, days: weeks.filter((wk) => wk[d] > 0).length }))
-  const maxDay = Math.max(1, ...byDay.map((d) => d.days))
   const stats =
     range === "all"
       ? engagement
       : [
-          { title: "Active days", value: String(active), caption: `${Math.round((active / days.length) * 100)}% of the last ${range} days` },
-          { title: "Longest streak", value: `${best} days`, caption: best ? `${shortDate(bestEnd - (best - 1) * DAY_MS)} – ${shortDate(bestEnd)}` : "—" },
-          { title: `Logins · ${range} days`, value: String(Math.round(active * 0.83)), caption: "3 devices · 1 country" },
-          { title: `Trading days · ${range} days`, value: String(Math.round(active * 0.78)), caption: "across 4 accounts" },
-          { title: `Orders · ${range} days`, value: range === "30" ? "1" : "2", caption: range === "30" ? "249.00 $ · renewal" : "338.00 $ · 2 renewals" },
+          { title: "Active days", value: String(Math.round(days * 0.71)), caption: `71% of the last ${days} days` },
+          { title: "Busiest hour", value: `${String(peak).padStart(2, "0")}:00 UTC`, caption: `${data.trader[peak]} sessions in that hour` },
+          { title: `Logins · ${days} days`, value: String(Math.round(days * 0.62)), caption: "3 devices · 1 country" },
+          { title: `Trading days · ${days} days`, value: String(Math.round(days * 0.58)), caption: "across 4 accounts" },
+          { title: `Orders · ${days} days`, value: days === 30 ? "1" : "2", caption: days === 30 ? "249.00 $ · renewal" : "338.00 $ · 2 renewals" },
         ]
-  // Short ranges get bigger days (capped), so 5 weeks don't stretch across the whole card.
-  const cell = weeksCount >= 52 ? "minmax(0,1fr)" : weeksCount >= 13 ? "minmax(0,34px)" : "minmax(0,40px)"
 
   return (
     <Section
@@ -128,72 +124,93 @@ function Engagement() {
             <CompactStat key={k.title} {...k} />
           ))}
         </div>
-        <div className="flex flex-col gap-6 px-6 pt-5 pb-5">
-          <div
-            className="grid gap-[4px]"
-            style={{ gridTemplateColumns: `29px repeat(${weeksCount}, ${cell})` }}
-            role="img"
-            aria-label={range === "all" ? "Active days over the last 12 months" : `Active days over the last ${range} days`}
-          >
-            {starts.map((t, i) => {
-              const d = new Date(t)
-              const prev = i > 0 ? new Date(starts[i - 1]) : null
-              const showMonth = weeksCount >= 52 ? !prev || prev.getUTCMonth() !== d.getUTCMonth() : true
-              if (!showMonth) return null
+        <div className="flex flex-col gap-3 px-6 pt-5 pb-5">
+          <div className="flex items-center justify-between">
+            <p className="text-[13px] font-medium text-(color:--content-default)">Activity by hour · UTC</p>
+            <div className="flex items-center gap-4 text-xs text-(color:--content-tertiary)">
+              {SERIES.map((s) => (
+                <span key={s.key} className="flex items-center gap-2">
+                  <span className="size-2 rounded-[2px]" style={{ background: s.color }} />
+                  {s.label}
+                </span>
+              ))}
+            </div>
+          </div>
+          {/* Heatmap (reference: activity heatmap video): one band per series, 24 contiguous hour cells, tooltip on hover. */}
+          <div className="relative grid grid-cols-[56px_minmax(0,1fr)] gap-x-3 gap-y-1.5" onMouseLeave={() => setHover(null)}>
+            {SERIES.map((s) => (
+              <React.Fragment key={s.key}>
+                <span className="self-center text-xs text-(color:--content-tertiary)">{s.label}</span>
+                <div className="flex h-6 overflow-hidden rounded-[3px]">
+                  {HOURS.map((h) => {
+                    const v = data[s.key][h]
+                    const strength = 0.07 + (v / max) * 0.93
+                    return (
+                      <span
+                        key={h}
+                        onMouseEnter={() => setHover(h)}
+                        className="relative flex-1 transition-[opacity,box-shadow] duration-200 ease-out"
+                        style={{
+                          background: s.color,
+                          opacity: hover === null ? strength : hover === h ? 1 : strength * 0.55,
+                          boxShadow: hover === h ? "inset 0 0 0 1px rgba(255,255,255,0.7)" : undefined,
+                          animation: `heat-in 500ms ${h * 18}ms cubic-bezier(0.16,1,0.3,1) both`,
+                        }}
+                      />
+                    )
+                  })}
+                </div>
+              </React.Fragment>
+            ))}
+            <span />
+            <div className="relative h-4 text-[11px] text-(color:--content-tertiary)">
+              {[0, 3, 6, 9, 12, 15, 18, 21].map((h) => (
+                <span key={h} className="absolute -translate-x-1/2" style={{ left: `${((h + 0.5) / 24) * 100}%` }}>
+                  {h}
+                </span>
+              ))}
+            </div>
+            {hover !== null && (
+              <div
+                role="tooltip"
+                className="pointer-events-none absolute top-full z-10 mt-1 w-[168px] -translate-x-1/2 rounded-[4px] border border-(--option-panel-border) bg-(--option-panel-bg) p-3 shadow-[0_8px_24px_rgba(0,0,0,0.45)] backdrop-blur-(--option-panel-blur) transition-[left] duration-150 ease-out"
+                style={{ left: `calc(68px + (100% - 68px) * ${(hover + 0.5) / 24})` }}
+              >
+                {SERIES.map((s) => (
+                  <p key={s.key} className="flex items-center justify-between text-xs text-(color:--content-secondary)">
+                    {s.label}
+                    <span className="flex items-center gap-2 font-medium text-(color:--content-default)">
+                      {data[s.key][hover]}
+                      <span className="size-1.5 rounded-full" style={{ background: s.color }} />
+                    </span>
+                  </p>
+                ))}
+                <p className="mt-2 flex justify-between border-t border-(--border-divider) pt-2 text-[11px] text-(color:--content-tertiary)">
+                  {range === "all" ? "Last 12 months" : `Last ${days} days`}
+                  <span>
+                    {String(hover).padStart(2, "0")}:00–{String((hover + 1) % 24).padStart(2, "0")}:00
+                  </span>
+                </p>
+              </div>
+            )}
+          </div>
+          <div className="mt-3 flex flex-wrap items-center gap-[14px] text-xs leading-4">
+            <span className="text-[12.5px] text-(color:--content-tertiary)">Active days by weekday</span>
+            {weekdays.map((d) => {
+              const top = d.days === Math.max(...weekdays.map((w) => w.days))
+              const width = (d.days / Math.max(...weekdays.map((w) => w.days))) * 100
               return (
-                <span
-                  key={`m${i}`}
-                  className="row-start-1 text-[11px] leading-none whitespace-nowrap text-(color:--content-tertiary)"
-                  style={{ gridColumnStart: i + 2 }}
-                >
-                  {weeksCount >= 52 ? d.toLocaleDateString("en-GB", { month: "short", timeZone: "UTC" }) : weeksCount > 9 && i % 2 ? "" : shortDate(t)}
+                <span key={d.day} className="flex items-center gap-2">
+                  <span className="relative h-1.5 w-[34px] overflow-hidden rounded-[3px]" style={{ background: EMPTY_DAY }}>
+                    <span className="absolute inset-y-0 left-0 rounded-[3px] bg-(--accent) transition-[width] duration-500" style={{ width: `${width}%`, opacity: top ? 1 : 0.72 }} />
+                  </span>
+                  <span className={top ? "text-(color:--content-default)" : "text-(color:--content-tertiary)"}>{d.day}</span>
+                  <span className="font-medium" style={{ color: top ? "var(--accent)" : "#bbbebd" }}>
+                    {Math.round((d.days * days) / 365)}
+                  </span>
                 </span>
               )
             })}
-            {["Mon", "Wed", "Fri"].map((d, i) => (
-              <span key={d} className="col-start-1 self-center text-[11px] leading-none text-(color:--content-tertiary)" style={{ gridRowStart: 2 + i * 2 }}>
-                {d}
-              </span>
-            ))}
-            {weeks.flatMap((week, w) =>
-              week.map((level, d) => (
-                <span
-                  key={`${w}-${d}`}
-                  title={`${shortDate(starts[w] + d * DAY_MS)} · ${level ? "active" : "no activity"}`}
-                  className="aspect-square rounded-[2px]"
-                  style={{ gridColumnStart: w + 2, gridRowStart: d + 2, ...dayStyle(level) }}
-                />
-              ))
-            )}
-          </div>
-          <div className="flex flex-wrap items-center justify-between gap-4">
-            <div className="flex flex-wrap items-center gap-[14px] text-xs leading-4">
-              <span className="text-[12.5px] text-(color:--content-tertiary)">Active days by weekday</span>
-              {byDay.map((d) => {
-                const top = d.days === maxDay
-                return (
-                  <span key={d.day} className="flex items-center gap-2">
-                    <span className="relative h-1.5 w-[34px] overflow-hidden rounded-[3px]" style={{ background: EMPTY_DAY }}>
-                      <span
-                        className="absolute inset-y-0 left-0 rounded-[3px] bg-(--accent)"
-                        style={{ width: `${(d.days / maxDay) * 100}%`, opacity: top ? 1 : 0.72 }}
-                      />
-                    </span>
-                    <span className={top ? "text-(color:--content-default)" : "text-(color:--content-tertiary)"}>{d.day}</span>
-                    <span className="font-medium" style={{ color: top ? "var(--accent)" : "#bbbebd" }}>
-                      {d.days}
-                    </span>
-                  </span>
-                )
-              })}
-            </div>
-            <span className="flex items-center gap-1.5 text-[11px] text-(color:--content-tertiary)">
-              Less
-              {[0, 1, 2, 3, 4].map((l) => (
-                <span key={l} className="size-[11px] rounded-[2px]" style={dayStyle(l)} />
-              ))}
-              More
-            </span>
           </div>
         </div>
       </Card>

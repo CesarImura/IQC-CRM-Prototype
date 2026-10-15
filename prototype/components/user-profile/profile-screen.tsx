@@ -120,7 +120,7 @@ export function ProfileScreen({ user }: { user: User }) {
         </div>
       </div>
     </div>
-    <div className="mx-auto flex w-full max-w-[1544px] flex-col gap-8 px-14 pt-6 pb-14">
+    <div data-page className="mx-auto flex w-full max-w-[1544px] flex-col gap-8 px-14 pt-6 pb-14">
       <header className="flex flex-col gap-4">
         <Link
           href="/customers/users"

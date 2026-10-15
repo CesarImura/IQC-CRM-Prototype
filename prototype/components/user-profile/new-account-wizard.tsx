@@ -2,7 +2,7 @@
 
 import * as React from "react"
 import * as Dialog from "@radix-ui/react-dialog"
-import { Checkmark, Close } from "@carbon/icons-react"
+import { ArrowLeft, Calendar, Checkmark, Close, Rule, User as UserIcon } from "@carbon/icons-react"
 
 import { ACCOUNT_FAMILIES, PLATFORM_MARKS } from "@/lib/users/account-families"
 import type { User } from "@/lib/users/data"
@@ -23,9 +23,9 @@ import { Switch } from "@/registry/iq/ui/toggle"
 // Families, limits and platforms follow the product rules (lib/users/account-families.ts).
 
 const STEPS = [
-  { title: "Account", description: "Owner, name and lineage" },
-  { title: "Rules", description: "Family, provider and balances" },
-  { title: "Schedule & access", description: "Activation, duration, platforms" },
+  { title: "Account", description: "Owner, name and lineage", icon: <UserIcon size={18} /> },
+  { title: "Rules", description: "Family, provider and balances", icon: <Rule size={18} /> },
+  { title: "Schedule & access", description: "Activation, duration, platforms", icon: <Calendar size={18} /> },
 ]
 
 type Form = {
@@ -81,6 +81,8 @@ export function NewAccountWizard({ user, open, onOpenChange }: { user: User; ope
 function Wizard({ user, onDone }: { user: User; onDone: () => void }) {
   const [step, setStep] = React.useState(0)
   const [reached, setReached] = React.useState(0)
+  const [dir, setDir] = React.useState<"forward" | "back">("forward")
+  const [created, setCreated] = React.useState(false)
   const [form, setForm] = React.useState<Form>(initialForm)
   const set = <K extends keyof Form>(key: K, value: Form[K]) => setForm((f) => ({ ...f, [key]: value }))
   const fam = ACCOUNT_FAMILIES.find((f) => f.value === form.family)
@@ -97,6 +99,7 @@ function Wizard({ user, onDone }: { user: User; onDone: () => void }) {
       : `IQCFEV50K-${user.username.toUpperCase()}-07`
 
   function goTo(next: number) {
+    setDir(next >= step ? "forward" : "back")
     setStep(next)
     setReached((r) => Math.max(r, next))
   }
@@ -111,11 +114,15 @@ function Wizard({ user, onDone }: { user: User; onDone: () => void }) {
     }))
   }
   function create() {
-    toast.success("Account created", {
-      description: `${preview} · ${fam?.label} for ${user.name}`,
-      action: { label: "View account", onClick: () => toast.info("The account page isn’t in this prototype yet") },
-    })
-    onDone()
+    // Success moment inside the modal first, then it closes and the toast confirms it.
+    setCreated(true)
+    window.setTimeout(() => {
+      onDone()
+      toast.success("Account created", {
+        description: `${preview} · ${fam?.label} for ${user.name}`,
+        action: { label: "View account", onClick: () => toast.info("The account page isn’t in this prototype yet") },
+      })
+    }, 1500)
   }
 
   return (
@@ -137,36 +144,46 @@ function Wizard({ user, onDone }: { user: User; onDone: () => void }) {
         <p className="mt-8 text-xs font-medium text-(color:--content-tertiary)">Step {step + 1} of 3</p>
         <ol className="mt-4 flex flex-col">
           {STEPS.map((s, i) => {
-            const done = i < step || (i <= reached && i !== step && valid[i])
-            const current = i === step
-            const clickable = i <= reached && !current
+            const done = created || i < step || (i <= reached && i !== step && Boolean(valid[i]))
+            const current = !created && i === step
+            const clickable = !created && i <= reached && !current
             return (
-              <li key={s.title}>
+              <li key={s.title} className="flex flex-col">
                 <button
                   type="button"
                   disabled={!clickable}
                   onClick={() => goTo(i)}
                   className={cn(
-                    "group flex w-full items-start gap-4 rounded-[4px] px-3 py-3 text-left outline-none",
-                    clickable && "cursor-pointer hover:bg-(--surface-hover)",
-                    current && "bg-(--surface-hover)"
+                    "group flex w-full items-center gap-4 rounded-[4px] p-0 text-left outline-none transition-colors duration-200",
+                    clickable && "cursor-pointer"
                   )}
                 >
+                  {/* Figma Icon box: 36px, radius 2. Done = accent tint + check; current = white 8%; next = outline only. */}
                   <span
                     className={cn(
-                      "mt-0.5 flex size-6 shrink-0 items-center justify-center rounded-full border text-xs font-medium",
-                      current && "border-(--accent) text-(color:--accent)",
-                      done && !current && "border-(--accent) bg-(--accent) text-(color:--content-on-accent)",
-                      !current && !done && "border-(--border-strong) text-(color:--content-tertiary)"
+                      "flex size-9 shrink-0 items-center justify-center rounded-[2px] border transition-[background-color,border-color,color] duration-300",
+                      done && !current && "border-(--accent) bg-[#0e2620] text-(color:--accent)",
+                      current && "border-white/16 bg-white/8 text-white",
+                      !current && !done && "border-(--border-divider) text-(color:--content-tertiary)",
+                      clickable && "group-hover:border-(--accent)"
                     )}
                   >
-                    {done && !current ? <Checkmark size={14} /> : i + 1}
+                    {done && !current ? <Checkmark size={18} className="animate-[wizard-pop_260ms_cubic-bezier(0.16,1,0.3,1)]" /> : s.icon}
                   </span>
                   <span className="flex flex-col">
                     <span className={cn("text-sm", current ? "font-semibold text-(color:--content-default)" : "font-medium text-(color:--content-secondary)")}>{s.title}</span>
-                    <span className="text-xs text-(color:--content-tertiary)">{done && !current ? "Done · review" : s.description}</span>
+                    <span className={cn("text-xs", done && !current ? "text-(color:--accent)" : "text-(color:--content-tertiary)")}>{done && !current ? "Done · review" : s.description}</span>
                   </span>
                 </button>
+                {i < STEPS.length - 1 && (
+                  <span
+                    aria-hidden="true"
+                    className={cn(
+                      "ml-[17px] h-9 w-0.5 transition-colors duration-300",
+                      done && !current ? "bg-(--accent)" : "bg-[repeating-linear-gradient(to_bottom,#bbbebd_0_2px,transparent_2px_6px)]"
+                    )}
+                  />
+                )}
               </li>
             )
           })}
@@ -175,32 +192,41 @@ function Wizard({ user, onDone }: { user: User; onDone: () => void }) {
 
       {/* Form */}
       <section className="flex min-h-0 flex-col">
-        <div className="flex items-start justify-between px-9 pt-8">
-          <h2 className="text-[26px] leading-[1.3] font-semibold text-(color:--content-default)">{STEPS[step].title === "Account" ? "Account details" : STEPS[step].title}</h2>
+        <div className="flex items-center justify-between border-b border-(--border-divider) px-9 py-7">
+          <h2 key={`t${step}${created}`} className="animate-[wizard-title_320ms_cubic-bezier(0.16,1,0.3,1)] text-[26px] leading-[1.3] font-semibold text-(color:--content-default)">
+            {created ? "Account created" : STEPS[step].title === "Account" ? "Account details" : STEPS[step].title}
+          </h2>
           <Dialog.Close asChild>
-            <Button type="button" variant="ghost" size="icon-sm" aria-label="Close">
+            <Button type="button" variant="secondary" size="icon-sm" aria-label="Close" className="border-white/16 bg-transparent">
               <Close />
             </Button>
           </Dialog.Close>
         </div>
-        <div className="min-h-0 flex-1 overflow-y-auto px-9 pt-10 pb-8">
-          {step === 0 && <StepAccount user={user} form={form} set={set} preview={preview} />}
-          {step === 1 && <StepRules form={form} set={set} pickFamily={pickFamily} />}
-          {step === 2 && <StepSchedule form={form} set={set} />}
+        <div className="min-h-0 flex-1 overflow-x-hidden overflow-y-auto px-9 pt-8 pb-8">
+          {created ? (
+            <Success id={preview} family={fam?.label ?? ""} name={user.name} />
+          ) : (
+            <div key={step} className={dir === "forward" ? "animate-[wizard-in-forward_380ms_cubic-bezier(0.16,1,0.3,1)]" : "animate-[wizard-in-back_380ms_cubic-bezier(0.16,1,0.3,1)]"}>
+              {step === 0 && <StepAccount user={user} form={form} set={set} preview={preview} />}
+              {step === 1 && <StepRules form={form} set={set} pickFamily={pickFamily} />}
+              {step === 2 && <StepSchedule form={form} set={set} />}
+            </div>
+          )}
         </div>
         <footer className="flex items-center gap-2 border-t border-(--border-divider) px-9 py-5">
-          {step > 0 && (
-            <Button type="button" variant="ghost" size="md" onClick={() => setStep(step - 1)}>
+          {step > 0 && !created && (
+            <Button type="button" variant="secondary" size="md" className="border-white/16" onClick={() => goTo(step - 1)}>
+              <ArrowLeft />
               Back
             </Button>
           )}
           <div className="ml-auto flex gap-2">
             <Dialog.Close asChild>
-              <Button type="button" variant="secondary" size="md">
+              <Button type="button" variant="secondary" size="md" className="border-white/15 bg-transparent" disabled={created}>
                 Cancel
               </Button>
             </Dialog.Close>
-            <Button type="submit" size="md" disabled={!valid[step]}>
+            <Button type="submit" size="md" disabled={!valid[step] || created}>
               {step < 2 ? "Continue" : "Save and create account"}
             </Button>
           </div>
@@ -214,7 +240,7 @@ type StepProps = { form: Form; set: <K extends keyof Form>(key: K, value: Form[K
 
 function Group({ title, description, children }: { title: string; description?: string; children: React.ReactNode }) {
   return (
-    <fieldset className="flex flex-col gap-4 [&:not(:first-child)]:mt-10">
+    <fieldset className="flex flex-col gap-4 [&:not(:first-child)]:mt-10 [&:not(:first-child)]:border-t [&:not(:first-child)]:border-(--border-divider) [&:not(:first-child)]:pt-10">
       <legend className="contents">
         <span className="text-base font-semibold text-(color:--content-default)">{title}</span>
       </legend>
@@ -470,5 +496,21 @@ function StepSchedule({ form, set }: StepProps) {
         </div>
       </Group>
     </>
+  )
+}
+
+function Success({ id, family, name }: { id: string; family: string; name: string }) {
+  return (
+    <div className="flex h-full flex-col items-center justify-center gap-5 text-center">
+      <span className="flex size-16 animate-[wizard-pop_420ms_cubic-bezier(0.16,1,0.3,1)] items-center justify-center rounded-[4px] border border-(--accent) bg-[#0e2620] text-(color:--accent)">
+        <Checkmark size={32} />
+      </span>
+      <div className="flex animate-[wizard-in-forward_480ms_120ms_cubic-bezier(0.16,1,0.3,1)_both] flex-col gap-1">
+        <p className="text-lg font-medium text-(color:--content-default)">{id}</p>
+        <p className="text-sm text-(color:--content-tertiary)">
+          {family} · {name}
+        </p>
+      </div>
+    </div>
   )
 }

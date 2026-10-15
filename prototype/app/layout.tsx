@@ -1,6 +1,7 @@
 import type { Metadata } from "next"
 import { Geist, Geist_Mono } from "next/font/google"
 
+import { BootLoader } from "@/components/dot-loader"
 import { Toaster } from "@/registry/iq/ui/toast"
 import "./globals.css"
 
@@ -17,6 +18,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html lang="en" className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}>
       <body className="h-full font-sans">
+        <BootLoader />
         {children}
         <Toaster />
       </body>
