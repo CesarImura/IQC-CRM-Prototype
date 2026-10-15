@@ -6,7 +6,8 @@ import { usePathname, useSearchParams } from "next/navigation"
 import { Add, ArrowLeft, Checkmark, Close, CloseOutline, Download, Login, Misuse, Purchase, Renew, UserIdentification } from "@carbon/icons-react"
 
 import type { User } from "@/lib/users/data"
-import { headerKpis, identity, lastActivity, PROFILE_TABS, type ProfileTab } from "@/lib/users/profile"
+import { moneyProfile } from "@/lib/users/money"
+import { identity, lastActivity, PROFILE_TABS, type ProfileTab } from "@/lib/users/profile"
 import { Button } from "@/registry/iq/ui/button"
 import { ActionMenu, type ActionItem } from "@/components/dropdown"
 import { cn } from "@/lib/utils"
@@ -152,7 +153,7 @@ export function ProfileScreen({ user }: { user: User }) {
       </header>
 
       <Card aria-label="Key numbers" className="flex flex-wrap">
-        {headerKpis.map((k) => (
+        {moneyProfile(user.id).header.map((k) => (
           <CompactStat key={k.title} title={k.title} value={k.value} caption={k.caption} tone={k.tone} />
         ))}
       </Card>

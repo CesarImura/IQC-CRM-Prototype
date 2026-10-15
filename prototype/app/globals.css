@@ -540,3 +540,14 @@ input, textarea, select, [contenteditable]:not([contenteditable="false"]) { care
 @keyframes option-in {
   from { opacity: 0; transform: translateY(-3px); }
 }
+/* r11 · thin, discreet scrollbar for lists that scroll inside a card (Admin notes). */
+.thin-scroll {
+  scrollbar-width: thin;
+  scrollbar-color: #3a3d3c transparent;
+}
+.thin-scroll::-webkit-scrollbar { width: 4px; }
+.thin-scroll::-webkit-scrollbar-thumb { background: #3a3d3c; border-radius: 2px; }
+.thin-scroll::-webkit-scrollbar-track { background: transparent; }
+@keyframes note-in {
+  from { opacity: 0; transform: translateY(6px); }
+}

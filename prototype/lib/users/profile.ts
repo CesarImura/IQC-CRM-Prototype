@@ -34,7 +34,7 @@ export const headerKpis = [
 /* ---------------------------------- Overview ---------------------------------- */
 
 /** Every cash event this year (dated, UTC): purchases and renewals in, payouts and refunds out. All ranges read this list. */
-export type CashEvent = { date: string; kind: "purchase" | "renewal" | "payout" | "refund"; amount: number; count?: number }
+export type CashEvent = { date: string; kind: "purchase" | "renewal" | "payout" | "refund"; amount: number; count?: number; plan?: string }
 export const cashEvents: CashEvent[] = [
   { date: "2026-01-14", kind: "purchase", amount: 267, count: 3 },
   { date: "2026-02-14", kind: "renewal", amount: 89 },
