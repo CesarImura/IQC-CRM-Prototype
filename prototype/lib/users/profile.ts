@@ -355,14 +355,14 @@ export function heatmap(): number[][] {
 
 export const heatmapMonths = ["Oct", "Nov", "Dec", "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep"]
 
-export type AccountLog = { account: string; profit: string; date: string; time: string; action: string; actionColor: "yellow" | "red" | "green"; reason: string; rule: string; detail: string | null }
+export type AccountLog = { account: string; profit: string; date: string; time: string; action: string; actionColor: "yellow" | "red" | "green"; reason: string; rule: string; detail: string | null; affiliate: string | null }
 
 export const accountLogs: AccountLog[] = [
-  { account: "IQCFEV50K-7713901", profit: "+18%", date: "08 Sep 2026", time: "21:38:56", action: "Partial flat", actionColor: "yellow", reason: "Maximum position open loss", rule: "Future · Classic 50k Promo — Evaluation", detail: null },
-  { account: "IQCFEV50K-7713901", profit: "+18%", date: "08 Sep 2026", time: "21:38:56", action: "Partial flat", actionColor: "yellow", reason: "Maximum position open loss", rule: "Future · Classic 50k Promo — Evaluation", detail: null },
-  { account: "IQCEV100K-7710243", profit: "+4%", date: "21 Aug 2026", time: "16:04:12", action: "Warning", actionColor: "yellow", reason: "Max position loss above 80% of the limit", rule: "Crypto · Core 100K — Evaluation", detail: null },
-  { account: "IQRA50K-7709455", profit: "−2%", date: "16 Sep 2026", time: "13:22:40", action: "Hard breach", actionColor: "red", reason: "Third strike · max position loss", rule: "Future · Rapid 50k — Evaluation", detail: "Strike 3" },
-  { account: "IQIF50K-7712004", profit: "+5%", date: "12 Sep 2026", time: "23:59:00", action: "Cleared", actionColor: "green", reason: "Daily drawdown back inside the limit", rule: "Future · Instant Funding 50k", detail: null },
+  { account: "IQCFEV50K-7713901", profit: "+18%", date: "08 Sep 2026", time: "21:38:56", action: "Partial flat", actionColor: "yellow", reason: "Maximum position open loss", rule: "Future · Classic 50k Promo — Evaluation", detail: null, affiliate: null },
+  { account: "IQCFEV50K-7713901", profit: "+18%", date: "08 Sep 2026", time: "21:38:56", action: "Partial flat", actionColor: "yellow", reason: "Maximum position open loss", rule: "Future · Classic 50k Promo — Evaluation", detail: null, affiliate: null },
+  { account: "IQCEV100K-7710243", profit: "+4%", date: "21 Aug 2026", time: "16:04:12", action: "Warning", actionColor: "yellow", reason: "Max position loss above 80% of the limit", rule: "Crypto · Core 100K — Evaluation", detail: null, affiliate: null },
+  { account: "IQRA50K-7709455", profit: "−2%", date: "16 Sep 2026", time: "13:22:40", action: "Hard breach", actionColor: "red", reason: "Third strike · max position loss", rule: "Future · Rapid 50k — Evaluation", detail: "Strike 3", affiliate: null },
+  { account: "IQIF50K-7712004", profit: "+5%", date: "12 Sep 2026", time: "23:59:00", action: "Cleared", actionColor: "green", reason: "Daily drawdown back inside the limit", rule: "Future · Instant Funding 50k", detail: null, affiliate: null },
 ]
 
 export type ActivityEvent = { title: string; detail: string; actor: string; link: string; date: string; time: string; tone: "positive" | "neutral" | "negative" }

@@ -174,8 +174,8 @@ function SubscriptionCard({ sub }: { sub: Subscription }) {
   ]
   return (
     <Card className="flex flex-col self-start">
-      <div className="flex items-start justify-between gap-3 px-4 pt-4">
-        <div className="flex min-w-0 flex-col gap-1">
+      <div className="flex items-start justify-between gap-3 px-4 pt-6">
+        <div className="flex min-w-0 flex-col gap-2">
           <div className="flex flex-wrap items-center gap-2">
             <span className="text-sm font-medium text-(color:--content-default)">{sub.product}</span>
             <TypeBadge type={sub.type} />
@@ -188,10 +188,10 @@ function SubscriptionCard({ sub }: { sub: Subscription }) {
           {sub.status}
         </StatusDot>
       </div>
-      <div className="grid grid-cols-[1.4fr_1fr_1fr] gap-3 border-b border-(--border-grid) px-4 py-5">
-        <Stat label="Step" value={sub.step} />
-        <Stat label="Amount" value={sub.amount} />
-        <div className="flex flex-col items-start gap-1">
+      <div className="grid grid-cols-[1.4fr_1fr_1fr] gap-3 border-b border-(--border-grid) px-4 pt-8 pb-6">
+        <Stat label="Step" value={sub.step} className="gap-2" />
+        <Stat label="Amount" value={sub.amount} className="gap-2" />
+        <div className="flex flex-col items-start gap-2">
           <span className="text-xs text-(color:--content-muted)">Payment</span>
           <Payment value={sub.payment} />
         </div>
@@ -199,14 +199,14 @@ function SubscriptionCard({ sub }: { sub: Subscription }) {
       {open && (
         <dl id={`${sub.id}-details`} className="flex flex-col border-b border-(--border-grid) px-4">
           {details.map(([label, value]) => (
-            <div key={label} className="flex min-h-10 items-center justify-between gap-3 border-b border-(--border-grid) text-sm last:border-b-0">
+            <div key={label} className="flex min-h-12 items-center justify-between gap-3 border-b border-(--border-grid) text-sm last:border-b-0">
               <dt className="text-(color:--content-tertiary)">{label}</dt>
               <dd className="text-right text-(color:--content-default)">{value}</dd>
             </div>
           ))}
         </dl>
       )}
-      <div className="mt-auto flex items-center justify-between gap-2 px-4 py-3">
+      <div className="mt-auto flex items-center justify-between gap-2 px-4 py-4">
         <Muted className="truncate">Trading account {sub.account}</Muted>
         <div className="flex shrink-0 gap-2">
           <Button variant="secondary" size="xs" aria-expanded={open} aria-controls={`${sub.id}-details`} onClick={() => setOpen((o) => !o)}>

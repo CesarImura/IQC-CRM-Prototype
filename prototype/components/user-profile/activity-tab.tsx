@@ -380,6 +380,12 @@ const logColumns = logCol.columns([
     size: 100,
     cell: (i) => (i.getValue() ? <ValueText>{i.getValue()}</ValueText> : <ValueText className="text-(color:--content-disabled)">—</ValueText>),
   }),
+  /* Figma Account logs: last column is the affiliate who referred the account (empty for direct buyers). */
+  logCol.accessor("affiliate", {
+    header: "Affiliate",
+    size: 160,
+    cell: (i) => (i.getValue() ? <ValueText>{i.getValue()}</ValueText> : <ValueText className="text-(color:--content-disabled)">—</ValueText>),
+  }),
 ])
 
 function AccountLogs() {
