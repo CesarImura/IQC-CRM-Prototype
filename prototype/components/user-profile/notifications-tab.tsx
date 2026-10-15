@@ -49,7 +49,7 @@ const columns = col.columns([
   col.accessor("id", { header: "Reference", size: 220, cell: (i) => <ValueText>{i.getValue()}</ValueText> }),
   col.display({
     id: "actions",
-    size: 56,
+    size: 64,
     header: () => <span className="sr-only">Actions</span>,
     cell: ({ row }) => (
       <div className="flex justify-center" onClick={(e) => e.stopPropagation()}>

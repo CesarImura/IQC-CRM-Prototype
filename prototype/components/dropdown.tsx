@@ -104,7 +104,7 @@ export function ExportMenu({
       <Popover.Portal>
         <Popover.Content align={align} sideOffset={8} className="z-50 outline-none">
           <OptionPanel className="w-max min-w-[220px]" aria-label="Export options">
-            <OptionPanelList>
+            <OptionPanelList className="max-h-none overflow-visible">
               {options.map((o) => (
                 <OptionItem key={o.value} value={o.value} label={o.label} selection="checkbox" checked={picked.includes(o.value)} onSelect={() => toggle(o.value)} />
               ))}
@@ -170,7 +170,7 @@ export function TimeFilter({
       <Popover.Portal>
         <Popover.Content align={align} sideOffset={8} className="z-50 outline-none">
           <OptionPanel aria-label={label} className="w-max">
-            <OptionPanelList>
+            <OptionPanelList className="max-h-none overflow-visible">
               <OptionItem value={any.value} label={any.label} selection="checkbox" checked={isAny} onSelect={() => pick(any.value)} />
               <div className="-mx-(--option-panel-padding) my-1 border-t border-(--option-panel-border)" />
               {periods.map((o) => (

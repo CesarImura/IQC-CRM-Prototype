@@ -113,7 +113,7 @@ export function getUserColumns(onAction: (user: User, action: RowAction) => void
     }),
     col.display({
       id: "actions",
-      size: 56,
+      size: 64,
       header: () => <span className="sr-only">Actions</span>,
       cell: ({ row }) => <RowActions user={row.original} onAction={onAction} />,
     }),

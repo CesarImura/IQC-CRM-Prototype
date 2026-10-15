@@ -252,7 +252,7 @@ const columns = col.columns([
   col.accessor("end", { header: "End", size: 120, cell: (i) => (i.getValue() ? <ValueDate date={i.getValue()} /> : <Dash />) }),
   col.display({
     id: "actions",
-    size: 56,
+    size: 64,
     header: () => <span className="sr-only">Actions</span>,
     cell: ({ row }) => (
       <div className="flex justify-center" onClick={(e) => e.stopPropagation()}>

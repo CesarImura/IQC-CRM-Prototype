@@ -94,7 +94,7 @@ export function ProfileScreen({ user }: { user: User }) {
       <div
         aria-hidden={!compact}
         className={cn(
-          "border-b border-l border-(--border-divider) bg-(--surface-canvas) transition-[opacity,translate] duration-150",
+          "border-b border-(--border-divider) bg-(--surface-canvas) transition-[opacity,translate] duration-150",
           compact ? "translate-y-0 opacity-100" : "pointer-events-none -translate-y-2 opacity-0"
         )}
       >

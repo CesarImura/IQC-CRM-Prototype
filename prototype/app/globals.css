@@ -464,3 +464,35 @@ body > :not([data-radix-popper-content-wrapper]),
   0%, 100% { opacity: 0.18; }
   50% { opacity: 1; }
 }
+/* Option lists never scroll sideways (dividers with negative margins used to add a horizontal scrollbar). */
+[cmdk-list] { overflow-x: hidden; }
+
+
+/* ---- Round 8 ---- */
+
+/* Everything clickable shows the hand cursor (Tailwind v4 resets buttons to the default arrow). */
+:is(button, [role="button"], [role="tab"], [role="checkbox"], [role="radio"], [role="switch"], [role="option"], [role="menuitem"], [cmdk-item], summary, label[for], select, a[href]):not(:disabled):not([aria-disabled="true"]) {
+  cursor: pointer;
+}
+:is(button, [role="tab"], [role="option"], [cmdk-item]):is(:disabled, [aria-disabled="true"], [data-disabled]) {
+  cursor: not-allowed;
+}
+tbody tr[tabindex] {
+  cursor: pointer;
+}
+
+/* One stroke between the Sub Menu and the content: the Sub Menu draws it; content blocks drop their left stroke. */
+[data-slot="sub-menu"] + div > [data-page] :is(
+  section[aria-label="Key numbers"] > :first-child,
+  [data-slot="tabs-line-list"],
+  [data-slot="toolbar"],
+  [data-slot="filter-results-bar"],
+  [data-slot="selection-bar"],
+  [data-slot="pagination"]
+) {
+  border-left-color: transparent;
+}
+[data-slot="sub-menu"] + div > [data-page] [data-slot="data-table"] :is(th, td):first-child {
+  border-left-color: transparent;
+}
+/* r8 */
