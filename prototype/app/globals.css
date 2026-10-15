@@ -540,14 +540,8 @@ input, textarea, select, [contenteditable]:not([contenteditable="false"]) { care
 @keyframes option-in {
   from { opacity: 0; transform: translateY(-3px); }
 }
-/* r11 · thin, discreet scrollbar for lists that scroll inside a card (Admin notes). */
-.thin-scroll {
-  scrollbar-width: thin;
-  scrollbar-color: #3a3d3c transparent;
-}
-.thin-scroll::-webkit-scrollbar { width: 4px; }
-.thin-scroll::-webkit-scrollbar-thumb { background: #3a3d3c; border-radius: 2px; }
-.thin-scroll::-webkit-scrollbar-track { background: transparent; }
+/* r11 · lists that scroll inside a card (Staff logs, Admin notes) use the DS Scroll Bar like every other scroller
+   (r15: the old thin rounded #3a3d3c bar is gone; `.thin-scroll` stays only as a hook). */
 @keyframes note-in {
   from { opacity: 0; transform: translateY(6px); }
 }
@@ -699,3 +693,25 @@ input, textarea, select, [contenteditable]:not([contenteditable="false"]) { care
   from { opacity: 0; transform: translateY(4px) scale(0.98); }
   40% { opacity: 1; }
 }
+/* r15 · Scroll Bar arrows (Davi liked the native arrows on Staff logs): every native scroller in the prototype gets
+   one square arrow at each end, drawn in the DS neutrals (500, 400 on hover). The thumb stays the DS one. */
+::-webkit-scrollbar-button:single-button {
+  display: block;
+  background-color: transparent;
+  background-repeat: no-repeat;
+  background-position: center;
+}
+::-webkit-scrollbar-button:vertical:single-button { width: var(--scroll-bar-size); height: 12px; }
+::-webkit-scrollbar-button:horizontal:single-button { width: 12px; height: var(--scroll-bar-size); }
+::-webkit-scrollbar-button:vertical:start:increment,
+::-webkit-scrollbar-button:vertical:end:decrement,
+::-webkit-scrollbar-button:horizontal:start:increment,
+::-webkit-scrollbar-button:horizontal:end:decrement { display: none; }
+::-webkit-scrollbar-button:vertical:decrement { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='8' height='12'%3E%3Cpolygon points='1,7.5 4,4.5 7,7.5' fill='%236e6f6f'/%3E%3C/svg%3E"); }
+::-webkit-scrollbar-button:vertical:decrement:hover { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='8' height='12'%3E%3Cpolygon points='1,7.5 4,4.5 7,7.5' fill='%23a8a9a9'/%3E%3C/svg%3E"); }
+::-webkit-scrollbar-button:vertical:increment { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='8' height='12'%3E%3Cpolygon points='1,4.5 4,7.5 7,4.5' fill='%236e6f6f'/%3E%3C/svg%3E"); }
+::-webkit-scrollbar-button:vertical:increment:hover { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='8' height='12'%3E%3Cpolygon points='1,4.5 4,7.5 7,4.5' fill='%23a8a9a9'/%3E%3C/svg%3E"); }
+::-webkit-scrollbar-button:horizontal:decrement { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpolygon points='7.5,1 4.5,4 7.5,7' fill='%236e6f6f'/%3E%3C/svg%3E"); }
+::-webkit-scrollbar-button:horizontal:decrement:hover { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpolygon points='7.5,1 4.5,4 7.5,7' fill='%23a8a9a9'/%3E%3C/svg%3E"); }
+::-webkit-scrollbar-button:horizontal:increment { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpolygon points='4.5,1 7.5,4 4.5,7' fill='%236e6f6f'/%3E%3C/svg%3E"); }
+::-webkit-scrollbar-button:horizontal:increment:hover { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpolygon points='4.5,1 7.5,4 4.5,7' fill='%23a8a9a9'/%3E%3C/svg%3E"); }
