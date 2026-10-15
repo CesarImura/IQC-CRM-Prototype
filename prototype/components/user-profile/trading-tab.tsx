@@ -153,7 +153,8 @@ function AccountCard({ account }: { account: TradingAccount }) {
         </div>
         <TypeBadge type={account.type} />
       </div>
-      <div className="grid grid-cols-3 border-y border-(--border-grid)">
+      {/* Phone (Figma Trading mobile): the three stats stack, one per row, so balances never truncate. */}
+      <div className="grid grid-cols-1 border-y border-(--border-grid) sm:grid-cols-3">
         {account.stats.map((s, i) => (
           <Stat
             key={s.label}
@@ -161,7 +162,7 @@ function AccountCard({ account }: { account: TradingAccount }) {
             value={<span className="text-base">{s.value}</span>}
             caption={s.caption}
             tone={s.tone}
-            className={cn("p-4", i > 0 && "border-l border-(--border-grid)")}
+            className={cn("p-4", i > 0 && "border-t border-(--border-grid) sm:border-t-0 sm:border-l")}
           />
         ))}
       </div>

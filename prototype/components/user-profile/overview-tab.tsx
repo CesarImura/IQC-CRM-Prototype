@@ -274,7 +274,15 @@ function CashFlowChart({ buckets, dense }: { buckets: CashBucket[]; dense?: bool
     setLast({ i, x: el.offsetLeft, w: el.offsetWidth, width: ref.current?.offsetWidth ?? 0 })
   }
   return (
-    <div ref={ref} className={cn("relative flex flex-1 items-end px-6 pt-6 pb-4", dense ? "gap-1" : "gap-2")} role="img" aria-label="Firm cash flow" onMouseLeave={() => setHover(null)}>
+    <div className="no-scrollbar flex flex-1 overflow-x-auto overflow-y-hidden lg:overflow-visible">
+    <div
+      ref={ref}
+      className={cn("relative flex flex-1 items-end px-6 pt-6 pb-4 max-lg:min-w-(--plot-min)", dense ? "gap-1" : "gap-2")}
+      style={{ "--plot-min": `${buckets.length * (dense ? 22 : 64) + 48}px` } as React.CSSProperties}
+      role="img"
+      aria-label="Firm cash flow"
+      onMouseLeave={() => setHover(null)}
+    >
       {buckets.map((m, i) => {
         const dim = hover !== null && hover !== i
         return (
@@ -302,6 +310,7 @@ function CashFlowChart({ buckets, dense }: { buckets: CashBucket[]; dense?: bool
         )
       })}
       {last && <CashTooltip bucket={buckets[last.i]} anchor={last} visible={hover !== null} />}
+    </div>
     </div>
   )
 }

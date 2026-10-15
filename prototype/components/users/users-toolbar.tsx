@@ -74,10 +74,10 @@ export function UsersToolbar({ filters, onFiltersChange, countFor, exportMenu }:
 
   return (
     <Toolbar
-      className="relative z-10 -mt-px"
+      className="relative z-10 -mt-px max-lg:flex-wrap max-lg:[&>[data-slot=toolbar-filters]]:contents"
       filters={
         <>
-          <div className="w-[398px] max-w-full">
+          <div className="w-[398px] max-w-full max-lg:w-full">
             <SearchBar
               placeholder="Search name, email, username or ID"
               aria-label="Search users"
@@ -86,6 +86,7 @@ export function UsersToolbar({ filters, onFiltersChange, countFor, exportMenu }:
               scope={{ label: "Search in", options: searchScopes, value: filters.field, onValueChange: (v) => set("field", v as SearchField) }}
             />
           </div>
+          <div className="contents max-lg:no-scrollbar max-lg:-my-1 max-lg:flex max-lg:min-w-0 max-lg:flex-1 max-lg:items-center max-lg:gap-(--toolbar-gap) max-lg:overflow-x-auto max-lg:py-1">
           <Dropdown
             label="Accounts"
             placeholder="Accounts"
@@ -112,7 +113,7 @@ export function UsersToolbar({ filters, onFiltersChange, countFor, exportMenu }:
             value={filters.registered}
             onValueChange={(v) => set("registered", v as RegisteredFilter)}
           />
-          <ToolbarDivider />
+          <ToolbarDivider className="max-lg:hidden" />
           <div className="flex items-center">
             <MoreFilters filters={filters} onApply={onFiltersChange} countFor={countFor} />
             {countPanelFilters(filters) > 0 && (
@@ -126,6 +127,7 @@ export function UsersToolbar({ filters, onFiltersChange, countFor, exportMenu }:
                 <Close size={16} />
               </button>
             )}
+          </div>
           </div>
         </>
       }

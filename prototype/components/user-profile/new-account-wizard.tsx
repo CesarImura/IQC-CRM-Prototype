@@ -71,7 +71,7 @@ const initialForm = (): Form => ({
 export function NewAccountWizard({ user, open, onOpenChange }: { user: User; open: boolean; onOpenChange: (open: boolean) => void }) {
   return (
     <Modal open={open} onOpenChange={onOpenChange}>
-      <ModalContent size="lg" className="w-[min(1200px,calc(100vw-32px))] max-w-none overflow-hidden p-0">
+      <ModalContent size="lg" className="w-[min(1200px,calc(100vw-32px))] max-w-none overflow-hidden p-0 max-lg:h-dvh max-lg:max-h-dvh max-lg:w-screen max-lg:rounded-none max-lg:border-0">
         {open && <Wizard user={user} onDone={() => onOpenChange(false)} />}
       </ModalContent>
     </Modal>
@@ -127,6 +127,7 @@ function Wizard({ user, onDone }: { user: User; onDone: () => void }) {
 
   return (
     <form
+      data-wizard
       className="grid h-[min(920px,calc(100dvh-32px))] grid-cols-[360px_minmax(0,1fr)]"
       onSubmit={(e) => {
         e.preventDefault()

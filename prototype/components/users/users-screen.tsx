@@ -188,7 +188,10 @@ export function UsersScreen() {
       />
 
       {/* KPI strip: four compact Stat Cards sharing borders. */}
-      <section aria-label="Key numbers" className="flex [&>*]:h-[140px] [&>*]:min-w-0 [&>*]:flex-1 [&>*:not(:first-child)]:-ml-px">
+      <section
+        aria-label="Key numbers"
+        className="grid grid-cols-2 [&>*]:min-w-0 max-lg:[&>*:nth-child(even)]:-ml-px max-lg:[&>*:nth-child(n+3)]:-mt-px lg:flex lg:[&>*]:h-[140px] lg:[&>*]:flex-1 lg:[&>*:not(:first-child)]:-ml-px"
+      >
         <StatCard title="Users" value={fmt(stats.total)} caption={`+${fmt(stats.new7)} in the last 7 days`} />
         <StatCard title="New · 30 days" value={fmt(stats.new30)} valueTone="positive" caption={`Registered · ${stats.new30BoughtPct}% bought a challenge`} />
         <StatCard title="KYC verified" value={`${stats.verifiedPct.toFixed(1)}%`} caption={`${fmt(stats.pending)} waiting for review`} />

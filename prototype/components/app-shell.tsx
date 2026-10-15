@@ -3,7 +3,7 @@
 import * as React from "react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { Notification, Settings } from "@carbon/icons-react"
+import { Menu, Notification, Settings } from "@carbon/icons-react"
 
 import { allSections, findLink, findSection, navGroups } from "@/lib/nav"
 import { cn } from "@/lib/utils"
@@ -39,6 +39,21 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   }
   React.useEffect(() => () => clearTimeout(railTimer.current), [])
 
+  // Below lg the same Side Menu + Sub Menu slide in as a drawer from the ☰ button (Figma: Nav Drawer / Mobile);
+  // any navigation closes it.
+  const [drawerOpen, setDrawerOpen] = React.useState(false)
+  const [drawerPath, setDrawerPath] = React.useState(pathname)
+  if (drawerPath !== pathname) {
+    setDrawerPath(pathname)
+    setDrawerOpen(false)
+  }
+  React.useEffect(() => {
+    if (!drawerOpen) return
+    const onKey = (e: KeyboardEvent) => e.key === "Escape" && setDrawerOpen(false)
+    window.addEventListener("keydown", onKey)
+    return () => window.removeEventListener("keydown", onKey)
+  }, [drawerOpen])
+
   // Focus rings only for keyboard users: a mouse click shouldn't leave a ring on the tab or button it hit.
   React.useEffect(() => {
     const root = document.documentElement
@@ -57,9 +72,16 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   return (
     <div className="flex h-dvh flex-col overflow-hidden">
       <TopMenu
-        brand={<BrandMark />}
+        brand={
+          <>
+            <Button variant="secondary" size="icon-sm" className="lg:hidden" aria-label="Open menu" aria-expanded={drawerOpen} onClick={() => setDrawerOpen(true)}>
+              <Menu />
+            </Button>
+            <BrandMark />
+          </>
+        }
         trail={
-          <Breadcrumb>
+          <Breadcrumb className="max-lg:hidden">
             <BreadcrumbList>
               <BreadcrumbItem>
                 <BreadcrumbLink asChild>
@@ -99,7 +121,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         }
         actions={
           <>
-            <div className="w-60">
+            <div className="w-60 max-lg:hidden">
               <SearchBar placeholder="Search Users, orders, affiliates..." aria-label="Search everything" value={search} onValueChange={setSearch} />
             </div>
             <Tooltip content="Notifications">
@@ -108,7 +130,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
               </Button>
             </Tooltip>
             <Tooltip content="Settings">
-              <Button variant="secondary" size="icon-sm" aria-label="Settings">
+              <Button variant="secondary" size="icon-sm" aria-label="Settings" className="max-lg:hidden">
                 <Settings />
               </Button>
             </Tooltip>
@@ -117,6 +139,25 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       />
 
       <div className="flex min-h-0 flex-1">
+        {/* Mobile drawer scrim: tap outside to close. */}
+        <div
+          aria-hidden="true"
+          onClick={() => setDrawerOpen(false)}
+          className={cn(
+            "fixed inset-0 z-40 bg-black/60 transition-opacity duration-300 lg:hidden",
+            drawerOpen ? "opacity-100" : "pointer-events-none opacity-0"
+          )}
+        />
+        {/* Desktop: `contents`, so the rail and Sub Menu sit in the row as before. Mobile: one fixed drawer (rail + Sub
+            Menu at 296px), sliding in from the left. Same component instances on every screen size. */}
+        <div
+          data-shell-nav
+          className={cn(
+            "flex lg:contents",
+            "max-lg:fixed max-lg:inset-y-0 max-lg:left-0 max-lg:z-50 max-lg:[--nav-width:296px] max-lg:transition-[translate,box-shadow] max-lg:duration-300 max-lg:ease-[cubic-bezier(0.16,1,0.3,1)]",
+            drawerOpen ? "max-lg:shadow-[16px_0_40px_rgba(0,0,0,0.55)]" : "max-lg:-translate-x-full"
+          )}
+        >
         {/* Collapsed 56px rail; hovering (or tabbing into) it expands it to 320px over the Sub Menu. */}
         <div
           className="relative z-30 w-14 shrink-0"
@@ -172,6 +213,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             </SubMenuGroup>
           ))}
         </SubMenu>
+        </div>
 
                 <div className="relative min-w-0 flex-1 overflow-x-hidden overflow-y-auto">{children}</div>
       </div>

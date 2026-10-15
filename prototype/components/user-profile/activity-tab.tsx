@@ -189,6 +189,7 @@ function Engagement() {
    colour bar, label at 32%, value at 80%. Anchored beside the hovered day (flips near the right edge, sits above it in
    the lower half), glides between days and cross-fades its content. */
 const LEVEL_NAMES = ["No activity", "Low", "Medium", "High", "Very high"]
+const TOOLTIP_H = 146
 type DayHover = { day: Day; x: number; y: number; w: number; h: number }
 
 function useDayHover() {
@@ -220,14 +221,14 @@ function DayTooltip({ hover, visible, box }: { hover: DayHover; visible: boolean
       className="pointer-events-none absolute z-20 transition-[left,top,opacity] duration-200 ease-[cubic-bezier(0.16,1,0.3,1)]"
       style={{
         left: flip ? hover.x - 12 : hover.x + hover.w + 12,
-        top: below ? hover.y - 4 : hover.y + hover.h + 4,
+        top: Math.max(0, Math.min(below ? hover.y - 4 : hover.y + hover.h + 4 - TOOLTIP_H, box.height - TOOLTIP_H)),
         opacity: visible ? 1 : 0,
       }}
     >
       <div
         className="flex min-w-[195px] flex-col gap-1.5 rounded-(--chart-tooltip-radius) bg-(--chart-tooltip-bg) px-4 py-3.5 shadow-[0_0_0_1px_var(--border-divider),0_12px_32px_rgba(0,0,0,0.5)] transition-transform duration-200 ease-[cubic-bezier(0.16,1,0.3,1)]"
         style={{
-          transform: `translate(${flip ? "-100%" : "0"}, ${below ? "0" : "-100%"}) scale(${visible ? 1 : 0.94})`,
+          transform: `translateX(${flip ? "-100%" : "0"}) scale(${visible ? 1 : 0.94})`,
           transformOrigin: `${flip ? "right" : "left"} ${below ? "top" : "bottom"}`,
           animation: "tooltip-pop 260ms cubic-bezier(0.16,1,0.3,1) both",
         }}
@@ -265,10 +266,16 @@ const cellHoverStyle = (level: number, on: boolean, dim: boolean): React.CSSProp
 /** All: the Figma year calendar, 52 weeks × 7 days with month labels on top and Mon/Wed/Fri on the left. */
 function YearCalendar({ days, starts }: { days: Day[]; starts: number[] }) {
   const { ref, hover, enter, leave, tooltip } = useDayHover()
+  const scroller = React.useRef<HTMLDivElement>(null)
+  React.useEffect(() => {
+    const el = scroller.current
+    if (el) el.scrollLeft = el.scrollWidth
+  }, [])
   return (
+    <div ref={scroller} className="no-scrollbar max-lg:-mx-6 max-lg:overflow-x-auto max-lg:px-6">
     <div
       ref={ref}
-      className="relative grid gap-[4px]"
+      className="relative grid gap-[4px] max-lg:min-w-[920px]"
       style={{ gridTemplateColumns: `29px repeat(${starts.length}, minmax(0,1fr))` }}
       role="img"
       aria-label="Active days over the last 12 months"
@@ -306,6 +313,7 @@ function YearCalendar({ days, starts }: { days: Day[]; starts: number[] }) {
         )
       })}
       {tooltip}
+    </div>
     </div>
   )
 }
@@ -390,7 +398,7 @@ function AccountLogs() {
           <Toolbar surface={false} className="w-full"
             filters={
               <>
-                <div className="w-60">
+                <div className="w-60 max-lg:w-full">
                   <SearchBar placeholder="Search account or reason" aria-label="Search account logs" value={search} onValueChange={setSearch} />
                 </div>
                 <Dropdown
@@ -459,7 +467,7 @@ function Timeline() {
           <Toolbar surface={false} className="w-full"
             filters={
               <>
-                <div className="w-60">
+                <div className="w-60 max-lg:w-full">
                   <SearchBar placeholder="Search events" aria-label="Search events" value={search} onValueChange={setSearch} />
                 </div>
                 <Dropdown

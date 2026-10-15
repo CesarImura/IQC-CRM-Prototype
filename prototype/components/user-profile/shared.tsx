@@ -61,7 +61,7 @@ export function CompactStat({
   tone?: "positive" | "negative"
 }) {
   return (
-    <div className="flex min-h-[110px] min-w-0 flex-1 flex-col justify-center gap-1 px-6 pt-[18px] pb-5 [&:not(:first-child)]:border-l [&:not(:first-child)]:border-(--border-divider)">
+    <div data-slot="compact-stat" className="flex min-h-[110px] min-w-0 flex-1 flex-col justify-center gap-1 px-6 pt-[18px] pb-5 [&:not(:first-child)]:border-l [&:not(:first-child)]:border-(--border-divider)">
       <span className="truncate text-[13px] leading-[17px] text-(color:--content-tertiary)">{title}</span>
       <span
         className={cn(

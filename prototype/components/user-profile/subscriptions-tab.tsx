@@ -107,7 +107,7 @@ export function SubscriptionsTab() {
             <Toolbar surface={false} className="w-full"
               filters={
                 <>
-                  <div className="w-60">
+                  <div className="w-60 max-lg:w-full">
                     <SearchBar placeholder="Search subscription or account" aria-label="Search subscriptions" value={search} onValueChange={setSearch} />
                   </div>
                   <Dropdown

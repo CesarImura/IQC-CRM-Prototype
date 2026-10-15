@@ -99,8 +99,8 @@ export function ProfileScreen({ user }: { user: User }) {
           compact ? "translate-y-0 opacity-100" : "pointer-events-none -translate-y-2 opacity-0"
         )}
       >
-        <div className="mx-auto flex h-12 w-full max-w-[1544px] items-center gap-5 px-14">
-          <div className="flex w-[189px] shrink-0 items-center gap-2 text-sm">
+        <div className="mx-auto flex h-12 w-full max-w-[1544px] items-center gap-3 px-4 lg:gap-5 lg:px-14">
+          <div className="flex w-[189px] shrink-0 items-center gap-2 text-sm max-lg:hidden">
             <Link href="/customers/users" tabIndex={compact ? 0 : -1} className="flex items-center gap-2 font-medium text-white/70 hover:text-white">
               <ArrowLeft size={16} />
               Users
@@ -117,11 +117,14 @@ export function ProfileScreen({ user }: { user: User }) {
               ))}
             </TabsLineList>
           </Tabs>
-          <ProfileActions user={user} compact onNewAccount={() => setWizardOpen(true)} />
+          {/* Phone: the compact bar keeps only the tabs; the actions stay in the header above. */}
+          <div className="contents max-lg:hidden">
+            <ProfileActions user={user} compact onNewAccount={() => setWizardOpen(true)} />
+          </div>
         </div>
       </div>
     </div>
-    <div data-page className="mx-auto flex w-full max-w-[1544px] flex-col gap-8 px-14 pt-6 pb-14">
+    <div data-page className="mx-auto flex w-full max-w-[1544px] flex-col gap-8 px-4 pt-6 pb-10 lg:px-14 lg:pb-14">
       <header className="flex flex-col gap-4">
         <Link
           href="/customers/users"
@@ -145,7 +148,7 @@ export function ProfileScreen({ user }: { user: User }) {
               <StatusDot tone={id.fraud === "Flagged" ? "negative" : "neutral"} className={id.fraud === "Flagged" ? undefined : "[&>span:first-child]:bg-white/20"}>
                 {id.fraud}
               </StatusDot>
-              <span className="border-l border-[#2e3130] pl-4 text-(color:--content-tertiary)">Last activity · {lastActivity}</span>
+              <span className="border-l border-[#2e3130] pl-4 text-(color:--content-tertiary) max-lg:basis-full max-lg:border-l-0 max-lg:pl-0">Last activity · {lastActivity}</span>
             </div>
           </div>
           <ProfileActions user={user} onNewAccount={() => setWizardOpen(true)} />
