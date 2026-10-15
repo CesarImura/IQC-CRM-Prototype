@@ -674,3 +674,28 @@ input, textarea, select, [contenteditable]:not([contenteditable="false"]) { care
     max-width: none;
   }
 }
+/* r14 · Elevation, Apple-style: two soft layers (a tight contact shadow + a wide, faint ambient one) instead of one
+   heavy black blur. Every floating surface uses these tokens. */
+:root {
+  --shadow-overlay: 0 1px 2px rgb(0 0 0 / 0.16), 0 8px 24px -6px rgb(0 0 0 / 0.28);
+  --shadow-overlay-ring: 0 0 0 1px var(--border-divider), var(--shadow-overlay);
+  --shadow-drawer: 1px 0 0 rgb(0 0 0 / 0.24), 12px 0 32px -12px rgb(0 0 0 / 0.36);
+}
+/* r14 · Option panels are solid (no see-through glass): the DS glass (white 5% + blur) loses its blur while the
+   panel fades in, so whatever sits behind showed through. Same tone as before, now opaque. */
+:root {
+  --option-panel-bg: var(--primitive-neutral-800);
+  --option-panel-blur: 0px;
+}
+[data-radix-popper-content-wrapper] :is([class*="--option-panel-bg"], [class*="--filter-panel-bg"], [class*="--calendar-popup-surface"]) {
+  box-shadow: var(--shadow-overlay);
+}
+/* Fade finishes early (first 40%) while the panel keeps settling, so it never looks half-transparent. */
+@keyframes popover-in {
+  from { opacity: 0; transform: translateY(-4px) scale(0.98); }
+  40% { opacity: 1; }
+}
+@keyframes popover-in-up {
+  from { opacity: 0; transform: translateY(4px) scale(0.98); }
+  40% { opacity: 1; }
+}

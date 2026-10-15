@@ -328,7 +328,7 @@ function CashTooltip({ bucket, anchor, visible }: { bucket: CashBucket; anchor: 
       style={{ left: flip ? anchor.x - 8 : anchor.x + anchor.w + 8, opacity: visible ? 1 : 0 }}
     >
       <div
-        className="flex min-w-[240px] flex-col gap-1.5 rounded-(--chart-tooltip-radius) bg-(--chart-tooltip-bg) px-4 py-3.5 shadow-[0_0_0_1px_var(--border-divider),0_12px_32px_rgba(0,0,0,0.5)] transition-transform duration-200 ease-[cubic-bezier(0.16,1,0.3,1)]"
+        className="flex min-w-[240px] flex-col gap-1.5 rounded-(--chart-tooltip-radius) bg-(--chart-tooltip-bg) px-4 py-3.5 shadow-(--shadow-overlay-ring) transition-transform duration-200 ease-[cubic-bezier(0.16,1,0.3,1)]"
         style={{
           transform: `translateX(${flip ? "-100%" : "0"}) scale(${visible ? 1 : 0.94})`,
           transformOrigin: flip ? "right top" : "left top",

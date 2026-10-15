@@ -155,7 +155,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           className={cn(
             "flex lg:contents",
             "max-lg:fixed max-lg:inset-y-0 max-lg:left-0 max-lg:z-50 max-lg:[--nav-width:296px] max-lg:transition-[translate,box-shadow] max-lg:duration-300 max-lg:ease-[cubic-bezier(0.16,1,0.3,1)]",
-            drawerOpen ? "max-lg:shadow-[16px_0_40px_rgba(0,0,0,0.55)]" : "max-lg:-translate-x-full"
+            drawerOpen ? "max-lg:shadow-(--shadow-drawer)" : "max-lg:-translate-x-full"
           )}
         >
         {/* Collapsed 56px rail; hovering (or tabbing into) it expands it to 320px over the Sub Menu. */}
@@ -170,7 +170,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           expanded={railOpen}
           aria-label="Sections"
           data-rail
-          className={cn("absolute inset-y-0 left-0 transition-[width,box-shadow] duration-150 ease-out", railOpen && "shadow-[16px_0_32px_rgba(0,0,0,0.45)]")}
+          className={cn("absolute inset-y-0 left-0 transition-[width,box-shadow] duration-150 ease-out", railOpen && "shadow-(--shadow-drawer)")}
         >
           {navGroups.map((group, i) => (
             <React.Fragment key={i}>
