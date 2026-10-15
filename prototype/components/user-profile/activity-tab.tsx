@@ -3,7 +3,7 @@
 import * as React from "react"
 import { Calendar, Laptop, Mobile, Screen } from "@carbon/icons-react"
 
-import { accountLogs, activity, engagement, sessions, staffLogs, weekdays, type AccountLog, type ActivityEvent } from "@/lib/users/profile"
+import { accountLogs, activity, engagement, heatmap, sessions, staffLogs, weekdays, type AccountLog, type ActivityEvent } from "@/lib/users/profile"
 import { cn } from "@/lib/utils"
 import { Badge, DeltaBadge } from "@/registry/iq/ui/badge"
 import { Button } from "@/registry/iq/ui/button"
@@ -48,7 +48,11 @@ export function ActivityTab() {
 
 // Figma (User Profile · Activity → Card · Engagement): 21px days on a 26px pitch, radius 2.27; L0 #1f2221, L1–L4 accent at
 // 30 / 50 / 72 / 100%. Stats 108px tall, 24/18 padding, 13px labels, 20px Medium values.
+// All = the Figma year calendar · 90 / 60 days = activity by hour · 30 days = one square per day.
 const EMPTY_DAY = "#1f2221"
+const LEVEL_OPACITY = [1, 0.3, 0.5, 0.72, 1]
+const dayStyle = (level: number): React.CSSProperties =>
+  level === 0 ? { background: EMPTY_DAY } : { background: "var(--accent)", opacity: LEVEL_OPACITY[level] }
 
 const RANGES = [
   { value: "all", label: "All", days: 365 },
@@ -57,16 +61,20 @@ const RANGES = [
   { value: "30", label: "30 days", days: 30 },
 ] as const
 type RangeValue = (typeof RANGES)[number]["value"]
+const DAY_MS = 86_400_000
+// Monday of the week of the prototype's "today" (Wed 14 Oct 2026).
+const LAST_WEEK_START = Date.UTC(2026, 9, 12)
+const shortDate = (t: number) => new Date(t).toLocaleDateString("en-GB", { day: "2-digit", month: "short", timeZone: "UTC" })
 const HOURS = Array.from({ length: 24 }, (_, h) => h)
+const noise = (a: number, b: number) => {
+  const x = Math.sin(a * 12.9898 + b * 78.233) * 43758.5453
+  return x - Math.floor(x)
+}
 
 // Hour-of-day activity for the trader (logins, trades) and for staff (actions on this profile), in UTC.
 // Deterministic so the chart doesn't change between renders.
 function hourly(days: number) {
   const bump = (h: number, center: number, width: number) => Math.exp(-((h - center) ** 2) / (2 * width ** 2))
-  const noise = (h: number, s: number) => {
-    const x = Math.sin(h * 12.9898 + s * 78.233) * 43758.5453
-    return x - Math.floor(x)
-  }
   const scale = days / 30
   return {
     trader: HOURS.map((h) => Math.round((bump(h, 14, 3.2) * 40 + bump(h, 21, 1.6) * 12 + noise(h, 1) * 4) * scale)),
@@ -79,24 +87,70 @@ const SERIES = [
   { key: "staff", label: "Staff", color: "var(--status-dot-info)" },
 ] as const
 
+type Day = { t: number; level: number; weekday: number; sessions: number; trades: number }
+
 function Engagement() {
   const [range, setRange] = React.useState<RangeValue>("all")
-  const [hover, setHover] = React.useState<number | null>(null)
   const days = RANGES.find((r) => r.value === range)?.days ?? 365
-  const data = React.useMemo(() => hourly(days), [days])
-  const max = Math.max(...data.trader, ...data.staff, 1)
-  const peak = data.trader.indexOf(Math.max(...data.trader))
+
+  // One calendar for every range: 52 weeks × 7 days ending this week; shorter ranges read the last N days up to today.
+  const weeks = React.useMemo(() => heatmap(), [])
+  const starts = weeks.map((_, i) => LAST_WEEK_START - (weeks.length - 1 - i) * 7 * DAY_MS)
+  const calendar: Day[] = React.useMemo(
+    () =>
+      weeks.flatMap((w, wi) =>
+        w.map((level, d) => ({
+          t: starts[wi] + d * DAY_MS,
+          level,
+          weekday: d,
+          sessions: level ? level * 2 + Math.round(noise(wi, d) * 3) : 0,
+          trades: level ? level * 4 + Math.round(noise(d, wi) * 6) : 0,
+        }))
+      ),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [weeks]
+  )
+  const todayIndex = (weeks.length - 1) * 7 + 2
+  const visible = range === "all" ? calendar : calendar.slice(todayIndex - days + 1, todayIndex + 1)
+  const hours = React.useMemo(() => hourly(days), [days])
+  const peak = hours.trader.indexOf(Math.max(...hours.trader))
+
+  const active = visible.filter((d) => d.level > 0)
+  let streak = 0
+  let best = 0
+  let bestEnd = 0
+  visible.forEach((d) => {
+    streak = d.level > 0 ? streak + 1 : 0
+    if (streak > best) {
+      best = streak
+      bestEnd = d.t
+    }
+  })
+  const byDay = weekdays.map((w, i) => ({ day: w.day, days: active.filter((d) => d.weekday === i).length }))
+  const maxDay = Math.max(1, ...byDay.map((d) => d.days))
 
   const stats =
     range === "all"
       ? engagement
       : [
-          { title: "Active days", value: String(Math.round(days * 0.71)), caption: `71% of the last ${days} days` },
-          { title: "Busiest hour", value: `${String(peak).padStart(2, "0")}:00 UTC`, caption: `${data.trader[peak]} sessions in that hour` },
-          { title: `Logins · ${days} days`, value: String(Math.round(days * 0.62)), caption: "3 devices · 1 country" },
-          { title: `Trading days · ${days} days`, value: String(Math.round(days * 0.58)), caption: "across 4 accounts" },
+          { title: "Active days", value: String(active.length), caption: `${Math.round((active.length / days) * 100)}% of the last ${days} days` },
+          range === "30"
+            ? { title: "Longest streak", value: `${best} days`, caption: best ? `${shortDate(bestEnd - (best - 1) * DAY_MS)} – ${shortDate(bestEnd)}` : "—" }
+            : { title: "Busiest hour", value: `${String(peak).padStart(2, "0")}:00 UTC`, caption: `${hours.trader[peak]} sessions in that hour` },
+          { title: `Logins · ${days} days`, value: String(Math.round(active.length * 0.83)), caption: "3 devices · 1 country" },
+          { title: `Trading days · ${days} days`, value: String(Math.round(active.length * 0.78)), caption: "across 4 accounts" },
           { title: `Orders · ${days} days`, value: days === 30 ? "1" : "2", caption: days === 30 ? "249.00 $ · renewal" : "338.00 $ · 2 renewals" },
         ]
+
+  const levelLegend = (
+    <span className="flex items-center gap-1.5 text-[11px] text-(color:--content-tertiary)">
+      Less
+      {[0, 1, 2, 3, 4].map((l) => (
+        <span key={l} className="size-[11px] rounded-[2px]" style={dayStyle(l)} />
+      ))}
+      More
+    </span>
+  )
 
   return (
     <Section
@@ -124,97 +178,205 @@ function Engagement() {
             <CompactStat key={k.title} {...k} />
           ))}
         </div>
-        <div className="flex flex-col gap-3 px-6 pt-5 pb-5">
-          <div className="flex items-center justify-between">
-            <p className="text-[13px] font-medium text-(color:--content-default)">Activity by hour · UTC</p>
-            <div className="flex items-center gap-4 text-xs text-(color:--content-tertiary)">
-              {SERIES.map((s) => (
-                <span key={s.key} className="flex items-center gap-2">
-                  <span className="size-2 rounded-[2px]" style={{ background: s.color }} />
-                  {s.label}
-                </span>
-              ))}
-            </div>
-          </div>
-          {/* Heatmap (reference: activity heatmap video): one band per series, 24 contiguous hour cells, tooltip on hover. */}
-          <div className="relative grid grid-cols-[56px_minmax(0,1fr)] gap-x-3 gap-y-1.5" onMouseLeave={() => setHover(null)}>
-            {SERIES.map((s) => (
-              <React.Fragment key={s.key}>
-                <span className="self-center text-xs text-(color:--content-tertiary)">{s.label}</span>
-                <div className="flex h-6 overflow-hidden rounded-[3px]">
-                  {HOURS.map((h) => {
-                    const v = data[s.key][h]
-                    const strength = 0.07 + (v / max) * 0.93
-                    return (
+        <div key={range} className={cn("flex flex-col px-6 pt-5 pb-5", range === "all" ? "gap-6" : "gap-3")}>
+          {range === "all" ? (
+            <YearCalendar weeks={weeks} starts={starts} />
+          ) : range === "30" ? (
+            <DayStrip days={visible} />
+          ) : (
+            <HourBands data={hours} days={days} />
+          )}
+          <div className={cn("flex flex-wrap items-center justify-between gap-4", range !== "all" && "mt-3")}>
+            <div className="flex flex-wrap items-center gap-[14px] text-xs leading-4">
+              <span className="text-[12.5px] text-(color:--content-tertiary)">Active days by weekday</span>
+              {byDay.map((d) => {
+                const top = d.days === maxDay
+                return (
+                  <span key={d.day} className="flex items-center gap-2">
+                    <span className="relative h-1.5 w-[34px] overflow-hidden rounded-[3px]" style={{ background: EMPTY_DAY }}>
                       <span
-                        key={h}
-                        onMouseEnter={() => setHover(h)}
-                        className="relative flex-1 transition-[opacity,box-shadow] duration-200 ease-out"
-                        style={{
-                          background: s.color,
-                          opacity: hover === null ? strength : hover === h ? 1 : strength * 0.55,
-                          boxShadow: hover === h ? "inset 0 0 0 1px rgba(255,255,255,0.7)" : undefined,
-                          animation: `heat-in 500ms ${h * 18}ms cubic-bezier(0.16,1,0.3,1) both`,
-                        }}
+                        className="absolute inset-y-0 left-0 rounded-[3px] bg-(--accent) transition-[width] duration-500"
+                        style={{ width: `${(d.days / maxDay) * 100}%`, opacity: top ? 1 : 0.72 }}
                       />
-                    )
-                  })}
-                </div>
-              </React.Fragment>
-            ))}
-            <span />
-            <div className="relative h-4 text-[11px] text-(color:--content-tertiary)">
-              {[0, 3, 6, 9, 12, 15, 18, 21].map((h) => (
-                <span key={h} className="absolute -translate-x-1/2" style={{ left: `${((h + 0.5) / 24) * 100}%` }}>
-                  {h}
-                </span>
-              ))}
-            </div>
-            {hover !== null && (
-              <div
-                role="tooltip"
-                className="pointer-events-none absolute top-full z-10 mt-1 w-[168px] -translate-x-1/2 rounded-[4px] border border-(--option-panel-border) bg-(--option-panel-bg) p-3 shadow-[0_8px_24px_rgba(0,0,0,0.45)] backdrop-blur-(--option-panel-blur) transition-[left] duration-150 ease-out"
-                style={{ left: `calc(68px + (100% - 68px) * ${(hover + 0.5) / 24})` }}
-              >
-                {SERIES.map((s) => (
-                  <p key={s.key} className="flex items-center justify-between text-xs text-(color:--content-secondary)">
-                    {s.label}
-                    <span className="flex items-center gap-2 font-medium text-(color:--content-default)">
-                      {data[s.key][hover]}
-                      <span className="size-1.5 rounded-full" style={{ background: s.color }} />
                     </span>
-                  </p>
-                ))}
-                <p className="mt-2 flex justify-between border-t border-(--border-divider) pt-2 text-[11px] text-(color:--content-tertiary)">
-                  {range === "all" ? "Last 12 months" : `Last ${days} days`}
-                  <span>
-                    {String(hover).padStart(2, "0")}:00–{String((hover + 1) % 24).padStart(2, "0")}:00
+                    <span className={top ? "text-(color:--content-default)" : "text-(color:--content-tertiary)"}>{d.day}</span>
+                    <span className="font-medium" style={{ color: top ? "var(--accent)" : "#bbbebd" }}>
+                      {d.days}
+                    </span>
                   </span>
-                </p>
-              </div>
-            )}
-          </div>
-          <div className="mt-3 flex flex-wrap items-center gap-[14px] text-xs leading-4">
-            <span className="text-[12.5px] text-(color:--content-tertiary)">Active days by weekday</span>
-            {weekdays.map((d) => {
-              const top = d.days === Math.max(...weekdays.map((w) => w.days))
-              const width = (d.days / Math.max(...weekdays.map((w) => w.days))) * 100
-              return (
-                <span key={d.day} className="flex items-center gap-2">
-                  <span className="relative h-1.5 w-[34px] overflow-hidden rounded-[3px]" style={{ background: EMPTY_DAY }}>
-                    <span className="absolute inset-y-0 left-0 rounded-[3px] bg-(--accent) transition-[width] duration-500" style={{ width: `${width}%`, opacity: top ? 1 : 0.72 }} />
-                  </span>
-                  <span className={top ? "text-(color:--content-default)" : "text-(color:--content-tertiary)"}>{d.day}</span>
-                  <span className="font-medium" style={{ color: top ? "var(--accent)" : "#bbbebd" }}>
-                    {Math.round((d.days * days) / 365)}
-                  </span>
-                </span>
-              )
-            })}
+                )
+              })}
+            </div>
+            {range !== "90" && range !== "60" && levelLegend}
           </div>
         </div>
       </Card>
     </Section>
+  )
+}
+
+/** All: the Figma year calendar, 52 weeks × 7 days with month labels on top and Mon/Wed/Fri on the left. */
+function YearCalendar({ weeks, starts }: { weeks: number[][]; starts: number[] }) {
+  return (
+    <div
+      className="grid gap-[4px]"
+      style={{ gridTemplateColumns: `29px repeat(${weeks.length}, minmax(0,1fr))` }}
+      role="img"
+      aria-label="Active days over the last 12 months"
+    >
+      {starts.map((t, i) => {
+        const d = new Date(t)
+        const prev = i > 0 ? new Date(starts[i - 1]) : null
+        if (prev && prev.getUTCMonth() === d.getUTCMonth()) return null
+        return (
+          <span key={`m${i}`} className="row-start-1 text-[11px] leading-none whitespace-nowrap text-(color:--content-tertiary)" style={{ gridColumnStart: i + 2 }}>
+            {d.toLocaleDateString("en-GB", { month: "short", timeZone: "UTC" })}
+          </span>
+        )
+      })}
+      {["Mon", "Wed", "Fri"].map((d, i) => (
+        <span key={d} className="col-start-1 self-center text-[11px] leading-none text-(color:--content-tertiary)" style={{ gridRowStart: 2 + i * 2 }}>
+          {d}
+        </span>
+      ))}
+      {weeks.flatMap((week, w) =>
+        week.map((level, d) => (
+          <span
+            key={`${w}-${d}`}
+            title={`${shortDate(starts[w] + d * DAY_MS)} · ${level ? "active" : "no activity"}`}
+            className="aspect-square rounded-[2px]"
+            style={{ gridColumnStart: w + 2, gridRowStart: d + 2, ...dayStyle(level), animation: `cell-in 420ms ${w * 9}ms cubic-bezier(0.16,1,0.3,1) both` }}
+          />
+        ))
+      )}
+    </div>
+  )
+}
+
+const tooltipClass =
+  "pointer-events-none absolute top-full z-10 mt-1 w-[168px] -translate-x-1/2 rounded-[4px] border border-(--option-panel-border) bg-(--option-panel-bg) p-3 shadow-[0_8px_24px_rgba(0,0,0,0.45)] backdrop-blur-(--option-panel-blur) transition-[left] duration-150 ease-out"
+
+/** 90 / 60 days: one band per series, 24 contiguous hour cells, tooltip on hover (reference: activity heatmap video). */
+function HourBands({ data, days }: { data: ReturnType<typeof hourly>; days: number }) {
+  const [hover, setHover] = React.useState<number | null>(null)
+  const max = Math.max(...data.trader, ...data.staff, 1)
+  return (
+    <>
+      <div className="flex items-center justify-between">
+        <p className="text-[13px] font-medium text-(color:--content-default)">Activity by hour · UTC</p>
+        <div className="flex items-center gap-4 text-xs text-(color:--content-tertiary)">
+          {SERIES.map((s) => (
+            <span key={s.key} className="flex items-center gap-2">
+              <span className="size-2 rounded-[2px]" style={{ background: s.color }} />
+              {s.label}
+            </span>
+          ))}
+        </div>
+      </div>
+      <div className="relative grid grid-cols-[56px_minmax(0,1fr)] gap-x-3 gap-y-1.5" onMouseLeave={() => setHover(null)}>
+        {SERIES.map((s) => (
+          <React.Fragment key={s.key}>
+            <span className="self-center text-xs text-(color:--content-tertiary)">{s.label}</span>
+            <div className="flex h-6 overflow-hidden rounded-[3px]">
+              {HOURS.map((h) => {
+                const strength = 0.07 + (data[s.key][h] / max) * 0.93
+                return (
+                  <span
+                    key={h}
+                    onMouseEnter={() => setHover(h)}
+                    className="relative flex-1 transition-[opacity,box-shadow] duration-200 ease-out"
+                    style={{
+                      background: s.color,
+                      opacity: hover === null ? strength : hover === h ? 1 : strength * 0.55,
+                      boxShadow: hover === h ? "inset 0 0 0 1px rgba(255,255,255,0.7)" : undefined,
+                      animation: `heat-in 500ms ${h * 18}ms cubic-bezier(0.16,1,0.3,1) both`,
+                    }}
+                  />
+                )
+              })}
+            </div>
+          </React.Fragment>
+        ))}
+        <span />
+        <div className="relative h-4 text-[11px] text-(color:--content-tertiary)">
+          {[0, 3, 6, 9, 12, 15, 18, 21].map((h) => (
+            <span key={h} className="absolute -translate-x-1/2" style={{ left: `${((h + 0.5) / 24) * 100}%` }}>
+              {h}
+            </span>
+          ))}
+        </div>
+        {hover !== null && (
+          <div role="tooltip" className={tooltipClass} style={{ left: `calc(68px + (100% - 68px) * ${(hover + 0.5) / 24})` }}>
+            {SERIES.map((s) => (
+              <p key={s.key} className="flex items-center justify-between text-xs text-(color:--content-secondary)">
+                {s.label}
+                <span className="flex items-center gap-2 font-medium text-(color:--content-default)">
+                  {data[s.key][hover]}
+                  <span className="size-1.5 rounded-full" style={{ background: s.color }} />
+                </span>
+              </p>
+            ))}
+            <p className="mt-2 flex justify-between border-t border-(--border-divider) pt-2 text-[11px] text-(color:--content-tertiary)">
+              {`Last ${days} days`}
+              <span>
+                {String(hover).padStart(2, "0")}:00–{String((hover + 1) % 24).padStart(2, "0")}:00
+              </span>
+            </p>
+          </div>
+        )}
+      </div>
+    </>
+  )
+}
+
+/** 30 days: one square per day up to today, levels from the year calendar, tooltip with the day's sessions and trades. */
+function DayStrip({ days }: { days: Day[] }) {
+  const [hover, setHover] = React.useState<number | null>(null)
+  const weekday = (t: number) => new Date(t).toLocaleDateString("en-GB", { weekday: "short", timeZone: "UTC" })
+  return (
+    <>
+      <p className="text-[13px] font-medium text-(color:--content-default)">Active days · last 30 days</p>
+      <div className="relative" onMouseLeave={() => setHover(null)}>
+        <div className="grid gap-[4px]" style={{ gridTemplateColumns: `repeat(${days.length}, minmax(0,1fr))` }}>
+          {days.map((d, i) => (
+            <span
+              key={d.t}
+              onMouseEnter={() => setHover(i)}
+              className="aspect-square rounded-[2px] transition-[opacity,box-shadow] duration-200 ease-out"
+              style={{
+                ...dayStyle(d.level),
+                ...(hover !== null && hover !== i && d.level ? { opacity: LEVEL_OPACITY[d.level] * 0.55 } : null),
+                boxShadow: hover === i ? "inset 0 0 0 1px rgba(255,255,255,0.7)" : undefined,
+                animation: `cell-in 420ms ${i * 16}ms cubic-bezier(0.16,1,0.3,1) both`,
+              }}
+            />
+          ))}
+        </div>
+        <div className="relative mt-2 h-4 text-[11px] text-(color:--content-tertiary)">
+          {days.map((d, i) =>
+            (i % 7 === 0 && i < days.length - 4) || i === days.length - 1 ? (
+              <span key={d.t} className="absolute -translate-x-1/2 whitespace-nowrap" style={{ left: `${((i + 0.5) / days.length) * 100}%` }}>
+                {i === days.length - 1 ? "Today" : shortDate(d.t)}
+              </span>
+            ) : null
+          )}
+        </div>
+        {hover !== null && (
+          <div role="tooltip" className={cn(tooltipClass, "mt-0")} style={{ left: `${((hover + 0.5) / days.length) * 100}%` }}>
+            <p className="flex items-center justify-between text-xs text-(color:--content-secondary)">
+              Sessions <span className="font-medium text-(color:--content-default)">{days[hover].sessions}</span>
+            </p>
+            <p className="flex items-center justify-between text-xs text-(color:--content-secondary)">
+              Trades <span className="font-medium text-(color:--content-default)">{days[hover].trades}</span>
+            </p>
+            <p className="mt-2 flex justify-between border-t border-(--border-divider) pt-2 text-[11px] text-(color:--content-tertiary)">
+              {weekday(days[hover].t)}
+              <span>{shortDate(days[hover].t)}</span>
+            </p>
+          </div>
+        )}
+      </div>
+    </>
   )
 }
 

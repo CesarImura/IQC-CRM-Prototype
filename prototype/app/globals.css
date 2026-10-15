@@ -457,3 +457,10 @@ body > :not([data-radix-popper-content-wrapper]),
 .h-dvh {
   height: calc(100dvh / var(--ui-zoom));
 }
+@keyframes cell-in {
+  from { opacity: 0; transform: scale(0.6); }
+}
+@keyframes logo-twinkle {
+  0%, 100% { opacity: 0.18; }
+  50% { opacity: 1; }
+}
