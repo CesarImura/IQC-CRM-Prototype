@@ -10,11 +10,10 @@ import { Button } from "@/registry/iq/ui/button"
 import { Dropdown, TimeFilter } from "@/components/dropdown"
 import { createDataTableColumnHelper, DataTable } from "@/registry/iq/ui/data-table"
 import { SearchBar } from "@/registry/iq/ui/search-bar"
-import { Tabs, TabsPillList, TabsPillTrigger } from "@/registry/iq/ui/tabs"
 import { toast } from "@/registry/iq/ui/toast"
 import { Toolbar } from "@/registry/iq/ui/toolbar"
 import { ValueDate, ValueText } from "@/registry/iq/ui/value-slot"
-import { Card, CompactStat, Muted, Section } from "./shared"
+import { Card, CompactStat, Muted, PeriodPills, Section } from "./shared"
 
 const exportMenu = (count: number, what: string) => (
   <Dropdown
@@ -56,15 +55,16 @@ const dayStyle = (level: number): React.CSSProperties =>
 
 const RANGES = [
   { value: "all", label: "All", days: 365 },
-  { value: "90", label: "90 days", days: 90 },
-  { value: "60", label: "60 days", days: 60 },
-  { value: "30", label: "30 days", days: 30 },
+  { value: "90", label: "90D", days: 90 },
+  { value: "60", label: "60D", days: 60 },
+  { value: "30", label: "30D", days: 30 },
 ] as const
 type RangeValue = (typeof RANGES)[number]["value"]
 const DAY_MS = 86_400_000
 // Monday of the week of the prototype's "today" (Wed 14 Oct 2026).
 const LAST_WEEK_START = Date.UTC(2026, 9, 12)
-const shortDate = (t: number) => new Date(t).toLocaleDateString("en-GB", { day: "2-digit", month: "short", timeZone: "UTC" })
+const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
+const shortDate = (t: number) => `${String(new Date(t).getUTCDate()).padStart(2, "0")} ${MONTHS[new Date(t).getUTCMonth()]}`
 const HOURS = Array.from({ length: 24 }, (_, h) => h)
 const noise = (a: number, b: number) => {
   const x = Math.sin(a * 12.9898 + b * 78.233) * 43758.5453
@@ -140,15 +140,7 @@ function Engagement() {
           <Button variant="secondary" size="sm" onClick={() => document.getElementById("sessions")?.scrollIntoView({ behavior: "smooth" })}>
             View sessions
           </Button>
-          <Tabs value={range} onValueChange={(v) => setRange(v as RangeValue)}>
-            <TabsPillList size="sm" aria-label="Period">
-              {RANGES.map((r) => (
-                <TabsPillTrigger key={r.value} value={r.value}>
-                  {r.label}
-                </TabsPillTrigger>
-              ))}
-            </TabsPillList>
-          </Tabs>
+          <PeriodPills value={range} options={RANGES} onValueChange={setRange} />
         </>
       }
     >
@@ -208,7 +200,7 @@ function YearCalendar({ weeks, starts }: { weeks: number[][]; starts: number[] }
         if (prev && prev.getUTCMonth() === d.getUTCMonth()) return null
         return (
           <span key={`m${i}`} className="row-start-1 text-[11px] leading-none whitespace-nowrap text-(color:--content-tertiary)" style={{ gridColumnStart: i + 2 }}>
-            {d.toLocaleDateString("en-GB", { month: "short", timeZone: "UTC" })}
+            {MONTHS[d.getUTCMonth()]}
           </span>
         )
       })}

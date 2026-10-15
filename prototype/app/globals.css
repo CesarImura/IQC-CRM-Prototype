@@ -500,3 +500,9 @@ tbody tr[tabindex] {
 @keyframes boot-in {
   from { opacity: 0; }
 }
+@keyframes bar-grow {
+  from { transform: scaleY(0); }
+}
+/* No blinking text caret on clicked labels, cells or titles (caret browsing / focusable text); only real fields show it. */
+body { caret-color: transparent; }
+input, textarea, select, [contenteditable]:not([contenteditable="false"]) { caret-color: auto; }

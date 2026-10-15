@@ -2,6 +2,7 @@ import * as React from "react"
 
 import { cn } from "@/lib/utils"
 import { Badge } from "@/registry/iq/ui/badge"
+import { Tabs, TabsPillList, TabsPillTrigger } from "@/registry/iq/ui/tabs"
 import { PageHeaderInfoIcon } from "@/registry/iq/ui/page-header"
 import { Tooltip } from "@/registry/iq/ui/tooltip"
 
@@ -135,5 +136,20 @@ export function LimitBar({ pct, tone = "neutral" }: { pct: number; tone?: "accen
         style={{ width: `${Math.min(100, Math.max(0, pct))}%` }}
       />
     </div>
+  )
+}
+
+/** Period switch for charts: Tab Pill sm (same 32px height as the sm buttons), every pill the same width. Labels "All", "YTD", "90D"… */
+export function PeriodPills<T extends string>({ value, options, onValueChange }: { value: T; options: readonly { value: T; label: string }[]; onValueChange: (v: T) => void }) {
+  return (
+    <Tabs value={value} onValueChange={(v) => onValueChange(v as T)}>
+      <TabsPillList size="sm" aria-label="Period">
+        {options.map((o) => (
+          <TabsPillTrigger key={o.value} value={o.value} className="w-13 px-0">
+            {o.label}
+          </TabsPillTrigger>
+        ))}
+      </TabsPillList>
+    </Tabs>
   )
 }

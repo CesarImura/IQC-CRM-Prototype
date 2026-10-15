@@ -33,29 +33,27 @@ export const headerKpis = [
 
 /* ---------------------------------- Overview ---------------------------------- */
 
-export const cashFlowKpis = [
-  { title: "Collected", value: money(712), tone: "positive" as const, caption: "1 purchase · 5 renewals" },
-  { title: "Paid out", value: money(-1240), tone: "negative" as const, caption: "2 payouts" },
-  { title: "Refunded", value: money(-89), tone: "negative" as const, caption: "1 refund" },
-  { title: "Payout / purchase", value: "46.4%", caption: "Firm-wide avg. 38.0%" },
-]
-
-/** Firm cash flow by month: money in (purchases, renewals) and out (payouts, refunds). */
-export const cashFlow = [
-  { month: "Jan", in: 267, out: 0 },
-  { month: "Feb", in: 89, out: 0 },
-  { month: "Mar", in: 89, out: -89 },
-  { month: "Apr", in: 89, out: 0 },
-  { month: "May", in: 89, out: -520 },
-  { month: "Jun", in: 89, out: 0 },
-  { month: "Jul", in: 0, out: 0 },
-  { month: "Aug", in: 0, out: -720 },
+/** Every cash event this year (dated, UTC): purchases and renewals in, payouts and refunds out. All ranges read this list. */
+export type CashEvent = { date: string; kind: "purchase" | "renewal" | "payout" | "refund"; amount: number; count?: number }
+export const cashEvents: CashEvent[] = [
+  { date: "2026-01-14", kind: "purchase", amount: 267, count: 3 },
+  { date: "2026-02-14", kind: "renewal", amount: 89 },
+  { date: "2026-03-14", kind: "renewal", amount: 89 },
+  { date: "2026-03-21", kind: "refund", amount: -89 },
+  { date: "2026-04-14", kind: "renewal", amount: 89 },
+  { date: "2026-05-14", kind: "renewal", amount: 89 },
+  { date: "2026-05-20", kind: "payout", amount: -520 },
+  { date: "2026-06-14", kind: "renewal", amount: 89 },
+  { date: "2026-07-28", kind: "renewal", amount: 89 },
+  { date: "2026-08-21", kind: "payout", amount: -720 },
+  { date: "2026-09-12", kind: "renewal", amount: 89 },
+  { date: "2026-10-10", kind: "renewal", amount: 89 },
 ]
 
 export const lifetime: { metric: string; count?: number; amount: string; delta?: string }[] = [
   { metric: "First purchases", count: 3, amount: "267.00 $" },
-  { metric: "Renewals", count: 5, amount: "445.00 $" },
-  { metric: "Total orders", count: 8, amount: "712.00 $" },
+  { metric: "Renewals", count: 8, amount: "712.00 $" },
+  { metric: "Total orders", count: 11, amount: "979.00 $" },
   { metric: "Refunds", count: 1, amount: "−89.00 $" },
   { metric: "Trading payouts", count: 2, amount: "−1,240.00 $" },
   { metric: "Affiliate commissions", amount: "156.40 $", delta: "+18%" },
