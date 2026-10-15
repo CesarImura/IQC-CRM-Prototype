@@ -14,7 +14,6 @@ import { FieldGrid, FieldGridRow } from "@/registry/iq/ui/field-grid"
 import { Pill } from "@/registry/iq/ui/pill"
 import { StatusDot } from "@/registry/iq/ui/status-dot"
 import { utmLabels } from "../users/columns"
-import { AdminNotes } from "./admin-notes"
 import { Card, CompactStat, PeriodPills, Section } from "./shared"
 
 const dateFormat = new Intl.DateTimeFormat("en-GB", { day: "2-digit", month: "short", year: "numeric", timeZone: "UTC" })
@@ -170,8 +169,6 @@ export function OverviewTab({ user }: { user: User }) {
           </Card>
         </Section>
       </div>
-
-      <AdminNotes />
     </div>
   )
 }

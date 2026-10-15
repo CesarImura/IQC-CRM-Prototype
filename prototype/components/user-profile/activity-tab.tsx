@@ -567,9 +567,14 @@ function StaffLogs() {
         />
       }
     >
-      <Card className="flex flex-1 flex-col divide-y divide-(--border-grid)">
-        {rows.map((l) => (
-          <div key={l.title + l.date} className="flex flex-1 items-center justify-between gap-3 px-4 py-4">
+      <Card className="relative flex min-h-[346px] flex-1 flex-col overflow-hidden">
+        <div className="thin-scroll absolute inset-0 divide-y divide-(--border-grid) overflow-y-auto overscroll-contain">
+        {rows.map((l, i) => (
+          <div
+            key={l.title + l.date}
+            className="flex min-h-[69px] items-center justify-between gap-3 px-4 py-4 transition-colors duration-200 hover:bg-white/[0.02] [animation:note-in_420ms_cubic-bezier(0.16,1,0.3,1)_both]"
+            style={{ animationDelay: `${Math.min(i, 8) * 35}ms` }}
+          >
             <div className="flex min-w-0 flex-col gap-1">
               <span className="text-sm text-(color:--content-default)">{l.title}</span>
               <span className="flex min-w-0 items-center gap-2">
@@ -582,6 +587,7 @@ function StaffLogs() {
             <Muted className="shrink-0">{l.date}</Muted>
           </div>
         ))}
+        </div>
       </Card>
     </Section>
   )

@@ -395,6 +395,18 @@ export const staffLogs = [
   { title: "Free reset granted", role: "Owner" as const, detail: "Maria added 1 free reset to SUB-2026-0418", date: "02 Sep 2026" },
   { title: "Refund issued", role: "Admin" as const, detail: "Julian returned 89.00 $ on a duplicate purchase", date: "09 Mar 2026" },
   { title: "KYC approved manually", role: "Admin" as const, detail: "Julian approved the identity after document review", date: "14 Jan 2026" },
+  { title: "Payout approved", role: "Admin" as const, detail: "Paula approved the 720.00 $ payout after the consistency check", date: "21 Aug 2026" },
+  { title: "Payout held", role: "Admin" as const, detail: "Paula held the payout for 24 h pending a consistency review", date: "20 Aug 2026" },
+  { title: "Email changed", role: "Owner" as const, detail: "Maria updated the login email at the trader request", date: "11 Oct 2026" },
+  { title: "Sessions signed out", role: "Admin" as const, detail: "Ana signed out 3 devices after a new-country login", date: "29 Jul 2026" },
+  { title: "Platform login reissued", role: "Admin" as const, detail: "Ana reissued the ATAS login and closed the Quantower session", date: "18 Sep 2026" },
+  { title: "Challenge extended", role: "Owner" as const, detail: "Maria added 5 days to IQCEV50K-158102 after the outage", date: "17 Sep 2026" },
+  { title: "Fraud check bypassed", role: "Owner" as const, detail: "Maria let one purchase skip the card fraud check", date: "06 May 2026" },
+  { title: "Payout approved", role: "Admin" as const, detail: "Julian approved the 520.00 $ payout", date: "20 May 2026" },
+  { title: "Affiliate linked", role: "Admin" as const, detail: "Julian linked the trader to the affiliate code TRADEPRO", date: "16 Jan 2026" },
+  { title: "Phone verified", role: "Admin" as const, detail: "Ana confirmed the phone number by call", date: "15 Jan 2026" },
+  { title: "Data exported", role: "Owner" as const, detail: "Maria exported the user data (GDPR request)", date: "03 Oct 2026" },
+  { title: "Rule question answered", role: "Admin" as const, detail: "Julian explained the Core max position loss with 3 strikes", date: "22 Sep 2026" },
 ].sort((a, b) => Date.parse(b.date) - Date.parse(a.date))
 
 /* ---------------------------------- Notifications ---------------------------------- */
