@@ -124,21 +124,14 @@ export function ProfileScreen({ user }: { user: User }) {
         </div>
       </div>
     </div>
-    <div data-page className="mx-auto flex w-full max-w-[1544px] flex-col gap-8 px-4 pt-6 pb-10 lg:px-14 lg:pb-14">
-      <header className="flex flex-col gap-4">
-        <Link
-          href="/customers/users"
-          className="flex w-fit items-center gap-2 rounded-[2px] text-sm font-medium text-white/70 outline-none hover:text-white focus-visible:shadow-[0_0_0_var(--focus-spread)_var(--focus-ring)]"
-        >
-          <ArrowLeft size={16} />
-          Users
-        </Link>
-
-        <div className="mt-2 flex flex-wrap items-end justify-between gap-4">
+    <div data-page className="mx-auto flex w-full max-w-[1544px] flex-col gap-5 px-4 pt-6 pb-10 lg:px-14 lg:pt-10 lg:pb-14">
+      {/* Figma Profile Header · Expanded (3165:86666): no back link, 40px top, actions centred on the name block. */}
+      <header className="flex flex-col">
+        <div className="flex flex-wrap items-center justify-between gap-4">
           <div className="flex min-w-0 flex-col">
-            <h1 className="truncate text-2xl leading-[1.3] font-medium text-white/80">{user.name}</h1>
-            <span className="mt-1 text-sm leading-normal text-white/50">{user.email}</span>
-            <div className="mt-2 flex flex-wrap items-center gap-4 text-sm [&_[data-slot=status-dot]]:gap-2 [&_[data-slot=status-dot]]:text-sm [&_[data-slot=status-dot]]:font-medium [&_[data-slot=status-dot]]:text-white/50">
+            <h1 className="truncate text-2xl leading-[1.5] font-medium text-white/80">{user.name}</h1>
+            <span className="text-sm leading-normal text-white/50">{user.email}</span>
+            <div className="flex flex-wrap items-center gap-4 pt-2 pb-4 text-sm [&_[data-slot=status-dot]]:gap-2 [&_[data-slot=status-dot]]:text-sm [&_[data-slot=status-dot]]:font-medium [&_[data-slot=status-dot]]:text-white/50">
               <StatusDot tone={user.verification === "verified" ? "positive" : "warning"} className="">
                 {user.verification === "verified" ? "Verified" : "Not verified"}
               </StatusDot>
@@ -161,7 +154,7 @@ export function ProfileScreen({ user }: { user: User }) {
         ))}
       </Card>
 
-      <Tabs value={tab} onValueChange={setTab} className="-mt-4 gap-8">
+      <Tabs value={tab} onValueChange={setTab} className="gap-8">
         <TabsLineList ref={tabsRef} aria-label="Profile sections">
           {PROFILE_TABS.map((t) => (
             <TabsLineTrigger key={t.value} value={t.value} tone="accent">
