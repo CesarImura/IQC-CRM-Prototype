@@ -9,7 +9,6 @@ import type { User } from "@/lib/users/data"
 import { headerKpis, identity, lastActivity, PROFILE_TABS, type ProfileTab } from "@/lib/users/profile"
 import { Button } from "@/registry/iq/ui/button"
 import { Dropdown } from "@/components/dropdown"
-import { StatCard } from "@/registry/iq/ui/stat-card"
 import { StatusDot } from "@/registry/iq/ui/status-dot"
 import { Tabs, TabsContent, TabsLineList, TabsLineTrigger } from "@/registry/iq/ui/tabs"
 import { toast } from "@/registry/iq/ui/toast"
@@ -17,6 +16,7 @@ import { ActivityTab } from "./activity-tab"
 import { NotificationsTab } from "./notifications-tab"
 import { OverviewTab } from "./overview-tab"
 import { SubscriptionsTab } from "./subscriptions-tab"
+import { CompactStat, Card } from "./shared"
 import { TradingTab } from "./trading-tab"
 
 const ACTIONS = [
@@ -92,11 +92,11 @@ export function ProfileScreen({ user }: { user: User }) {
         </div>
       </header>
 
-      <section aria-label="Key numbers" className="flex [&>*]:min-w-0 [&>*]:flex-1 [&>*:not(:first-child)]:-ml-px">
+      <Card aria-label="Key numbers" className="flex flex-wrap">
         {headerKpis.map((k) => (
-          <StatCard key={k.title} title={k.title} value={k.value} caption={k.caption} valueTone={k.tone ?? "default"} />
+          <CompactStat key={k.title} title={k.title} value={k.value} caption={k.caption} tone={k.tone} />
         ))}
-      </section>
+      </Card>
 
       <Tabs value={tab} onValueChange={setTab} className="-mt-4 gap-8">
         <TabsLineList aria-label="Profile sections">

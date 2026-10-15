@@ -12,7 +12,7 @@ import { SearchBar } from "@/registry/iq/ui/search-bar"
 import { StatusDot } from "@/registry/iq/ui/status-dot"
 import { Tabs, TabsPillList, TabsPillTrigger } from "@/registry/iq/ui/tabs"
 import { toast } from "@/registry/iq/ui/toast"
-import { Toolbar } from "@/registry/iq/ui/toolbar"
+import { Toolbar, ToolbarDivider } from "@/registry/iq/ui/toolbar"
 import { ValueDate, ValueText } from "@/registry/iq/ui/value-slot"
 import { Card, Muted, Section, Stat, TypeBadge } from "./shared"
 
@@ -51,12 +51,6 @@ export function SubscriptionsTab() {
       title="Subscriptions"
       actions={
         <>
-          <Tabs value={view} onValueChange={(v) => setView(v as "cards" | "table")}>
-            <TabsPillList size="sm" aria-label="View">
-              <TabsPillTrigger value="cards" icon={<Grid />} aria-label="Cards" />
-              <TabsPillTrigger value="table" icon={<List />} aria-label="Table" />
-            </TabsPillList>
-          </Tabs>
           {view === "cards" && (
             <Dropdown
               label="Status"
@@ -86,11 +80,18 @@ export function SubscriptionsTab() {
           <Button size="sm" onClick={() => notYet("Add subscription")}>
             Add subscription
           </Button>
+          <ToolbarDivider />
+          <Tabs value={view} onValueChange={(v) => setView(v as "cards" | "table")}>
+            <TabsPillList size="sm" aria-label="View">
+              <TabsPillTrigger value="cards" icon={<Grid />} aria-label="Cards" />
+              <TabsPillTrigger value="table" icon={<List />} aria-label="Table" />
+            </TabsPillList>
+          </Tabs>
         </>
       }
     >
       {view === "cards" ? (
-        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+        <div className="grid items-start gap-4 md:grid-cols-2 xl:grid-cols-3">
           {rows.map((s) => (
             <SubscriptionCard key={s.id} sub={s} />
           ))}
@@ -148,8 +149,31 @@ export function SubscriptionsTab() {
 }
 
 function SubscriptionCard({ sub }: { sub: Subscription }) {
+  const [open, setOpen] = React.useState(false)
+  const details: [string, React.ReactNode][] = [
+    ["Start", sub.bought],
+    ["Renewal", sub.renewal ?? "—"],
+    [
+      "Source",
+      <Badge key="s" color="gray" size="sm">
+        {sub.source}
+      </Badge>,
+    ],
+    ["End", sub.end ?? "—"],
+    ["Add-on", sub.addOn ?? "—"],
+    [
+      "Free reset",
+      sub.freeResets > 0 ? (
+        <Badge key="r" color="green" size="sm">
+          Available: {sub.freeResets}
+        </Badge>
+      ) : (
+        "—"
+      ),
+    ],
+  ]
   return (
-    <Card className="flex flex-col">
+    <Card className="flex flex-col self-start">
       <div className="flex items-start justify-between gap-3 px-4 pt-4">
         <div className="flex min-w-0 flex-col gap-1">
           <div className="flex flex-wrap items-center gap-2">
@@ -164,7 +188,7 @@ function SubscriptionCard({ sub }: { sub: Subscription }) {
           {sub.status}
         </StatusDot>
       </div>
-      <div className="grid grid-cols-[1.4fr_1fr_1fr] gap-3 px-4 py-5">
+      <div className="grid grid-cols-[1.4fr_1fr_1fr] gap-3 border-b border-(--border-grid) px-4 py-5">
         <Stat label="Step" value={sub.step} />
         <Stat label="Amount" value={sub.amount} />
         <div className="flex flex-col items-start gap-1">
@@ -172,11 +196,21 @@ function SubscriptionCard({ sub }: { sub: Subscription }) {
           <Payment value={sub.payment} />
         </div>
       </div>
-      <div className="mt-auto flex items-center justify-between gap-2 border-t border-(--border-grid) px-4 py-3">
+      {open && (
+        <dl id={`${sub.id}-details`} className="flex flex-col border-b border-(--border-grid) px-4">
+          {details.map(([label, value]) => (
+            <div key={label} className="flex min-h-10 items-center justify-between gap-3 border-b border-(--border-grid) text-sm last:border-b-0">
+              <dt className="text-(color:--content-tertiary)">{label}</dt>
+              <dd className="text-right text-(color:--content-default)">{value}</dd>
+            </div>
+          ))}
+        </dl>
+      )}
+      <div className="mt-auto flex items-center justify-between gap-2 px-4 py-3">
         <Muted className="truncate">Trading account {sub.account}</Muted>
         <div className="flex shrink-0 gap-2">
-          <Button variant="secondary" size="xs" onClick={() => notYet("Subscription details")}>
-            Show details
+          <Button variant="secondary" size="xs" aria-expanded={open} aria-controls={`${sub.id}-details`} onClick={() => setOpen((o) => !o)}>
+            {open ? "Hide details" : "Show details"}
           </Button>
           <Button variant="secondary" size="xs" onClick={() => notYet("Subscription page")}>
             Open

@@ -298,3 +298,23 @@ html[data-input="pointer"] [data-slot="tabs-pill-trigger"]:focus-visible {
 [data-slot="data-table"] td button[aria-haspopup="listbox"] {
   border: 1px solid var(--button-secondary-border-default);
 }
+
+/* ---- Round 3 ---- */
+
+/* Toolbars inside Data Tables (profile tabs): raised surface + frame stroke, sharing the line with the table head. */
+[data-slot="data-table-toolbar"] {
+  position: relative;
+  z-index: 1;
+  margin-bottom: -1px;
+  border: 1px solid var(--border-divider);
+  background: var(--surface-raised);
+}
+
+/* Mouse clicks leave no focus ring on buttons, links, triggers or tabs; keyboard focus keeps it. */
+html[data-input="pointer"] :is(button, a, [role="tab"], [role="checkbox"], [role="combobox"]):focus-visible:not([data-slot="tabs-line-trigger"]) {
+  box-shadow: none;
+  outline: none;
+}
+
+/* Engagement heatmap and stats: see components/user-profile/activity-tab.tsx (Figma Card · Engagement). */
+/* profile stats: CompactStat in components/user-profile/shared.tsx */

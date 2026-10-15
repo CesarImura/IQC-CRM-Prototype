@@ -10,12 +10,11 @@ import { Button } from "@/registry/iq/ui/button"
 import { Dropdown } from "@/components/dropdown"
 import { createDataTableColumnHelper, DataTable } from "@/registry/iq/ui/data-table"
 import { SearchBar } from "@/registry/iq/ui/search-bar"
-import { StatCard } from "@/registry/iq/ui/stat-card"
 import { Tabs, TabsPillList, TabsPillTrigger } from "@/registry/iq/ui/tabs"
 import { toast } from "@/registry/iq/ui/toast"
 import { Toolbar } from "@/registry/iq/ui/toolbar"
 import { ValueDate, ValueText } from "@/registry/iq/ui/value-slot"
-import { Card, Muted, Section } from "./shared"
+import { Card, CompactStat, Muted, Section } from "./shared"
 
 const exportMenu = (count: number, what: string) => (
   <Dropdown
@@ -47,7 +46,12 @@ export function ActivityTab() {
 
 /* ---------------------------------- Engagement ---------------------------------- */
 
-const LEVEL = ["bg-(--primitive-white-5)", "bg-[color-mix(in_srgb,var(--accent)_25%,transparent)]", "bg-[color-mix(in_srgb,var(--accent)_50%,transparent)]", "bg-[color-mix(in_srgb,var(--accent)_75%,transparent)]", "bg-(--accent)"]
+// Figma (User Profile · Activity → Card · Engagement): 21px days on a 26px pitch, radius 2.27; L0 #1f2221, L1–L4 accent at
+// 30 / 50 / 72 / 100%. Stats 108px tall, 24/18 padding, 13px labels, 20px Medium values.
+const EMPTY_DAY = "#1f2221"
+const LEVEL_OPACITY = [1, 0.3, 0.5, 0.72, 1]
+const dayStyle = (level: number): React.CSSProperties =>
+  level === 0 ? { background: EMPTY_DAY } : { background: "var(--accent)", opacity: LEVEL_OPACITY[level] }
 
 function Engagement() {
   const [range, setRange] = React.useState("all")
@@ -73,48 +77,68 @@ function Engagement() {
       }
     >
       <Card>
-        <div className="grid grid-cols-2 border-b border-(--border-grid) md:grid-cols-5 [&>*]:rounded-none [&>*]:border-0 [&>*]:bg-transparent [&>*:not(:last-child)]:border-r [&>*]:border-(--border-grid)">
+        <div className="flex flex-wrap border-b border-(--border-divider)">
           {engagement.map((k) => (
-            <StatCard key={k.title} title={k.title} value={k.value} caption={k.caption} />
+            <CompactStat key={k.title} {...k} />
           ))}
         </div>
-        <div className="overflow-x-auto px-4 py-5">
-          <div className="flex min-w-[900px] gap-2" role="img" aria-label="Active days over the last 12 months">
-            <div className="flex flex-col justify-between pt-5 pb-0.5 text-[11px] text-(color:--chart-axis-label)">
-              <span>Mon</span>
-              <span>Wed</span>
-              <span>Fri</span>
-              <span className="invisible">Sun</span>
-            </div>
-            <div className="flex flex-1 flex-col gap-1">
-              <div className="flex justify-between text-[11px] text-(color:--chart-axis-label)">
-                {heatmapMonths.map((m) => (
-                  <span key={m}>{m}</span>
-                ))}
-              </div>
-              <div className="grid grid-flow-col grid-rows-7 gap-[3px]">
-                {weeks.flatMap((week, w) => week.map((level, d) => <span key={`${w}-${d}`} className={cn("aspect-square w-full", LEVEL[level])} />))}
-              </div>
+        <div className="flex flex-col gap-6 px-6 pt-5 pb-5">
+          <div className="overflow-x-auto">
+            <div
+              className="grid w-max grid-cols-[29px_repeat(52,21px)] grid-rows-[auto_repeat(7,21px)] gap-x-[5px] gap-y-[5px]"
+              role="img"
+              aria-label="Active days over the last 12 months"
+            >
+              {heatmapMonths.map((m, i) => (
+                <span
+                  key={m}
+                  className="row-start-1 text-[11px] leading-none text-(color:--content-tertiary)"
+                  style={{ gridColumnStart: 2 + Math.round((i * 52) / 12) }}
+                >
+                  {m}
+                </span>
+              ))}
+              {["Mon", "Wed", "Fri"].map((d, i) => (
+                <span key={d} className="col-start-1 self-center text-[11px] leading-none text-(color:--content-tertiary)" style={{ gridRowStart: 2 + i * 2 }}>
+                  {d}
+                </span>
+              ))}
+              {weeks.flatMap((week, w) =>
+                week.map((level, d) => (
+                  <span key={`${w}-${d}`} className="rounded-[2.27px]" style={{ gridColumnStart: w + 2, gridRowStart: d + 2, ...dayStyle(level) }} />
+                ))
+              )}
             </div>
           </div>
-        </div>
-        <div className="flex flex-wrap items-center justify-between gap-4 border-t border-(--border-grid) px-4 py-3 text-xs text-(color:--content-muted)">
-          <div className="flex flex-wrap items-center gap-4">
-            <span>Active days by weekday</span>
-            {weekdays.map((d) => (
-              <span key={d.day} className="flex items-center gap-2">
-                <span className="h-0.5 bg-(--accent)" style={{ width: `${(d.days / maxDay) * 32}px` }} />
-                {d.day} <span className="text-(color:--content-default)">{d.days}</span>
-              </span>
-            ))}
+          <div className="flex flex-wrap items-center justify-between gap-4">
+            <div className="flex flex-wrap items-center gap-[14px] text-xs leading-4">
+              <span className="text-[12.5px] text-(color:--content-tertiary)">Active days by weekday</span>
+              {weekdays.map((d) => {
+                const top = d.days === maxDay
+                return (
+                  <span key={d.day} className="flex items-center gap-2">
+                    <span className="relative h-1.5 w-[34px] overflow-hidden rounded-[3px]" style={{ background: EMPTY_DAY }}>
+                      <span
+                        className="absolute inset-y-0 left-0 rounded-[3px] bg-(--accent)"
+                        style={{ width: `${(d.days / maxDay) * 100}%`, opacity: top ? 1 : 0.72 }}
+                      />
+                    </span>
+                    <span className={top ? "text-(color:--content-default)" : "text-(color:--content-tertiary)"}>{d.day}</span>
+                    <span className="font-medium" style={{ color: top ? "var(--accent)" : "#bbbebd" }}>
+                      {d.days}
+                    </span>
+                  </span>
+                )
+              })}
+            </div>
+            <span className="flex items-center gap-1.5 text-[11px] text-(color:--content-tertiary)">
+              Less
+              {[0, 1, 2, 3, 4].map((l) => (
+                <span key={l} className="size-[11px] rounded-[2px]" style={dayStyle(l)} />
+              ))}
+              More
+            </span>
           </div>
-          <span className="flex items-center gap-1">
-            Less
-            {LEVEL.map((c) => (
-              <span key={c} className={cn("size-2.5", c)} />
-            ))}
-            More
-          </span>
         </div>
       </Card>
     </Section>
@@ -126,7 +150,7 @@ function Engagement() {
 const logCol = createDataTableColumnHelper<AccountLog>()
 const logColumns = logCol.columns([
   logCol.accessor("account", { header: "Account", size: 190, cell: (i) => <ValueText>{i.getValue()}</ValueText> }),
-  logCol.accessor("profit", { header: "Acc. Profits", size: 110, cell: (i) => <DeltaBadge size="sm">{i.getValue()}</DeltaBadge> }),
+  logCol.accessor("profit", { header: "Acc. Profits", size: 130, cell: (i) => <DeltaBadge size="sm">{i.getValue()}</DeltaBadge> }),
   logCol.accessor("date", { header: "Date/Time", size: 130, cell: ({ row }) => <ValueDate date={row.original.date} time={row.original.time} /> }),
   logCol.accessor("action", {
     header: "Action",

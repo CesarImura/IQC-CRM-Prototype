@@ -86,15 +86,18 @@ export type Subscription = {
   bought: string
   renewal: string | null
   end: string | null
+  source: "Purchase" | "Renewal" | "Upgrade"
+  addOn: string | null
+  freeResets: number
 }
 
 export const subscriptions: Subscription[] = [
-  { id: "SUB-2026-0418", product: "Core 100K · CFD + Crypto", type: "Challenge", status: "Active", step: "Step 1 — Evaluation", account: "IQCEV100K-7710243", amount: "89.00 $", payment: "Confirmed", bought: "02 Jun 2026", renewal: null, end: null },
-  { id: "SUB-2026-0287", product: "Core 100K · funded", type: "Funding", status: "Active", step: "Step 2 — Verification", account: "IQCFEV100K-7708112", amount: "249.00 $", payment: "Confirmed", bought: "18 Mar 2026", renewal: "18 Oct 2026", end: null },
-  { id: "SUB-2026-0611", product: "Instant Funding 50K · Futures", type: "Funding", status: "Active", step: "Funded from day one", account: "IQIF50K-7712004", amount: "349.00 $", payment: "Confirmed", bought: "01 Sep 2026", renewal: "01 Oct 2026", end: null },
-  { id: "SUB-2026-0390", product: "Rapid 50K · Futures", type: "Breached", status: "Ended", step: "Closed by breach", account: "IQRA50K-7709455", amount: "135.00 $", payment: "Confirmed", bought: "01 Jun 2026", renewal: null, end: "16 Sep 2026" },
-  { id: "SUB-2025-0964", product: "Core 50K · funded", type: "Funding", status: "Ended", step: "Cycle ended", account: "IQCF50K-7702118", amount: "129.00 $", payment: "Refunded", bought: "22 Dec 2025", renewal: null, end: "22 Jun 2026" },
-  { id: "SUB-2026-0722", product: "Rapid 25K · Futures", type: "Challenge", status: "Active", step: "Step 1 — Evaluation", account: "IQRA25K-7713880", amount: "69.00 $", payment: "Confirmed", bought: "14 Aug 2026", renewal: null, end: null },
+  { id: "SUB-2026-0418", product: "Core 100K · CFD + Crypto", type: "Challenge", status: "Active", step: "Step 1 — Evaluation", account: "IQCEV100K-7710243", amount: "89.00 $", payment: "Confirmed", bought: "02 Jun 2026", renewal: null, end: null, source: "Purchase", addOn: null, freeResets: 2 },
+  { id: "SUB-2026-0287", product: "Core 100K · funded", type: "Funding", status: "Active", step: "Step 2 — Verification", account: "IQCFEV100K-7708112", amount: "249.00 $", payment: "Confirmed", bought: "18 Mar 2026", renewal: "18 Oct 2026", end: null, source: "Upgrade", addOn: "Payout boost", freeResets: 1 },
+  { id: "SUB-2026-0611", product: "Instant Funding 50K · Futures", type: "Funding", status: "Active", step: "Funded from day one", account: "IQIF50K-7712004", amount: "349.00 $", payment: "Confirmed", bought: "01 Sep 2026", renewal: "01 Oct 2026", end: null, source: "Purchase", addOn: null, freeResets: 0 },
+  { id: "SUB-2026-0390", product: "Rapid 50K · Futures", type: "Breached", status: "Ended", step: "Closed by breach", account: "IQRA50K-7709455", amount: "135.00 $", payment: "Confirmed", bought: "01 Jun 2026", renewal: null, end: "16 Sep 2026", source: "Purchase", addOn: null, freeResets: 0 },
+  { id: "SUB-2025-0964", product: "Core 50K · funded", type: "Funding", status: "Ended", step: "Cycle ended", account: "IQCF50K-7702118", amount: "129.00 $", payment: "Refunded", bought: "22 Dec 2025", renewal: null, end: "22 Jun 2026", source: "Renewal", addOn: null, freeResets: 0 },
+  { id: "SUB-2026-0722", product: "Rapid 25K · Futures", type: "Challenge", status: "Active", step: "Step 1 — Evaluation", account: "IQRA25K-7713880", amount: "69.00 $", payment: "Confirmed", bought: "14 Aug 2026", renewal: null, end: null, source: "Purchase", addOn: "Extra 7 days", freeResets: 1 },
 ]
 
 /* ---------------------------------- Trading ---------------------------------- */
@@ -338,14 +341,14 @@ export const weekdays = [
   { day: "Sun", days: 8 },
 ]
 
-/** 53 weeks × 7 days of activity levels 0–4, busier towards the present and on weekdays. */
+/** 52 weeks × 7 days of activity levels 0–4, busier towards the present and on weekdays. */
 export function heatmap(): number[][] {
-  return Array.from({ length: 53 }, (_, w) =>
+  return Array.from({ length: 52 }, (_, w) =>
     Array.from({ length: 7 }, (_, d) => {
       const h = Math.sin(w * 12.9898 + d * 78.233) * 43758.5453
       const r = h - Math.floor(h)
       const weekend = d >= 5 ? 0.45 : 1
-      const trend = 0.45 + (w / 52) * 0.55
+      const trend = 0.45 + (w / 51) * 0.55
       const v = r * weekend * trend * 5
       return v < 0.9 ? 0 : Math.min(4, Math.floor(v))
     })

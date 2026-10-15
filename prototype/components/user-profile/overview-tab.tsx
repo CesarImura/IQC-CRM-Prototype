@@ -12,10 +12,9 @@ import { Button } from "@/registry/iq/ui/button"
 import { Dropdown } from "@/components/dropdown"
 import { FieldGrid, FieldGridRow } from "@/registry/iq/ui/field-grid"
 import { Pill } from "@/registry/iq/ui/pill"
-import { StatCard } from "@/registry/iq/ui/stat-card"
 import { StatusDot } from "@/registry/iq/ui/status-dot"
 import { utmLabels } from "../users/columns"
-import { Card, Section } from "./shared"
+import { Card, CompactStat, Section } from "./shared"
 
 const dateFormat = new Intl.DateTimeFormat("en-GB", { day: "2-digit", month: "short", year: "numeric", timeZone: "UTC" })
 
@@ -47,9 +46,9 @@ export function OverviewTab({ user }: { user: User }) {
           }
         >
           <Card className="flex h-full flex-col">
-            <div className="grid grid-cols-2 border-b border-(--border-grid) lg:grid-cols-4 [&>*]:rounded-none [&>*]:border-0 [&>*:not(:last-child)]:border-r [&>*]:border-(--border-grid) [&>*]:bg-transparent">
+            <div className="flex flex-wrap border-b border-(--border-divider)">
               {cashFlowKpis.map((k) => (
-                <StatCard key={k.title} title={k.title} value={k.value} caption={k.caption} valueTone={k.tone ?? "default"} />
+                <CompactStat key={k.title} title={k.title} value={k.value} caption={k.caption} tone={k.tone} />
               ))}
             </div>
             <CashFlowChart />
@@ -129,8 +128,9 @@ export function OverviewTab({ user }: { user: User }) {
         </Section>
 
         <Section title="Identity & verification">
-          <Card className="h-full">
-            <FieldGrid columns={2} className="gap-x-5 px-6 py-2">
+          <Card className="flex h-full flex-col">
+            {/* Rows share the card's height (Figma: 7 rows spread over the panel), no empty band at the bottom. */}
+            <FieldGrid columns={2} className="flex-1 gap-x-5 px-6 py-2 [grid-auto-rows:1fr] [&>*]:!h-auto [&>*]:min-h-12">
               <FieldGridRow label="ID" copyValue={user.id}>
                 {`${user.id.slice(0, 8)}…${user.id.slice(-8)}`}
               </FieldGridRow>

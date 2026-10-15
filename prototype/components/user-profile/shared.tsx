@@ -46,6 +46,36 @@ export function Card({ className, ...props }: React.ComponentProps<"div">) {
   return <div className={cn("min-w-0 rounded-[4px] border border-(--border-divider) bg-(--surface-raised)", className)} {...props} />
 }
 
+/** Stat of the profile bands (Figma Stat · Net amount / Collected / Active days): 108px, 24/18/20 padding,
+ *  13px label and caption, 20px Medium value. Neighbours share a 1px divider. */
+export function CompactStat({
+  title,
+  value,
+  caption,
+  tone,
+}: {
+  title: React.ReactNode
+  value: React.ReactNode
+  caption?: React.ReactNode
+  tone?: "positive" | "negative"
+}) {
+  return (
+    <div className="flex min-h-[110px] min-w-0 flex-1 flex-col justify-center gap-1 px-6 pt-[18px] pb-5 [&:not(:first-child)]:border-l [&:not(:first-child)]:border-(--border-divider)">
+      <span className="truncate text-[13px] leading-[17px] text-(color:--content-tertiary)">{title}</span>
+      <span
+        className={cn(
+          "truncate text-xl leading-[1.3] font-medium text-(color:--content-default)",
+          tone === "positive" && "text-(color:--stat-card-value-positive)",
+          tone === "negative" && "text-(color:--stat-card-value-negative)"
+        )}
+      >
+        {value}
+      </span>
+      {caption && <span className="truncate text-[13px] leading-[17px] text-(color:--content-tertiary)">{caption}</span>}
+    </div>
+  )
+}
+
 /** Label over value, as in the profile cards. */
 export function Stat({
   label,
