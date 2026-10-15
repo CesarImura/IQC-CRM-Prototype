@@ -128,3 +128,58 @@ export function ExportMenu({
     </Popover.Root>
   )
 }
+
+export type TimeOption = { value: string; label: string }
+
+/**
+ * Time filter: Dropdown trigger with a calendar icon; the panel lists periods with checkboxes (one at a time),
+ * the "any time" option on top and split by a divider (reference: Date · All time panel).
+ */
+export function TimeFilter({
+  label,
+  options,
+  value,
+  onValueChange,
+  icon,
+  align = "start",
+  placeholderWhenAny,
+}: {
+  label: string
+  /** First option is the "no filter" one (All time / Any time). */
+  options: TimeOption[]
+  value: string
+  onValueChange: (value: string) => void
+  icon?: React.ReactNode
+  align?: "start" | "end"
+  /** Trigger text while the first option is chosen (e.g. "Registered"); defaults to that option's label. */
+  placeholderWhenAny?: string
+}) {
+  const [open, setOpen] = React.useState(false)
+  const [any, ...periods] = options
+  const current = options.find((o) => o.value === value) ?? any
+  const isAny = current.value === any.value
+  const pick = (v: string) => {
+    onValueChange(v)
+    setOpen(false)
+  }
+  return (
+    <Popover.Root open={open} onOpenChange={setOpen}>
+      <Popover.Trigger type="button" aria-label={label} data-open={open} className={triggerClasses("sm", false)}>
+        <TriggerContent icon={icon} placeholder={placeholderWhenAny ?? any.label} value={isAny && placeholderWhenAny ? undefined : current.label} open={open} />
+      </Popover.Trigger>
+      <Popover.Portal>
+        <Popover.Content align={align} sideOffset={8} className="z-50 outline-none">
+          <OptionPanel aria-label={label} className="w-max">
+            <OptionPanelList>
+              <OptionItem value={any.value} label={any.label} selection="checkbox" checked={isAny} onSelect={() => pick(any.value)} />
+              <div className="-mx-(--option-panel-padding) my-1 border-t border-(--option-panel-border)" />
+              {periods.map((o) => (
+                <OptionItem key={o.value} value={o.value} label={o.label} selection="checkbox" checked={o.value === current.value} onSelect={() => pick(o.value)} />
+              ))}
+            </OptionPanelList>
+          </OptionPanel>
+        </Popover.Content>
+      </Popover.Portal>
+    </Popover.Root>
+  )
+}

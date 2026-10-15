@@ -15,6 +15,7 @@ import { Tabs, TabsContent, TabsLineList, TabsLineTrigger } from "@/registry/iq/
 import { toast } from "@/registry/iq/ui/toast"
 import { ActivityTab } from "./activity-tab"
 import { NotificationsTab } from "./notifications-tab"
+import { NewAccountWizard } from "./new-account-wizard"
 import { OverviewTab } from "./overview-tab"
 import { SubscriptionsTab } from "./subscriptions-tab"
 import { CompactStat, Card } from "./shared"
@@ -39,10 +40,10 @@ const ACTION_SECTIONS: ActionItem[][] = [
 ]
 const actionLabel = (v: string) => ACTION_SECTIONS.flat().find((a) => a.value === v)?.label
 
-function ProfileActions({ user, compact = false }: { user: User; compact?: boolean }) {
+function ProfileActions({ user, compact = false, onNewAccount }: { user: User; compact?: boolean; onNewAccount: () => void }) {
   return (
     <div className="flex shrink-0 items-center gap-2">
-      <ActionMenu label="Actions" columns sections={ACTION_SECTIONS} onSelect={(v) => toast.info(`${actionLabel(v)} isn’t in this prototype yet`)} />
+      <ActionMenu label="Actions" columns sections={ACTION_SECTIONS} onSelect={(v) => (v === "new-account" ? onNewAccount() : toast.info(`${actionLabel(v)} isn’t in this prototype yet`))} />
       <Button variant="secondary" size="sm" onClick={() => toast.info("Edit user isn’t in this prototype yet")}>
         {compact ? "Edit user" : "Edit User"}
       </Button>
@@ -70,6 +71,7 @@ export function ProfileScreen({ user }: { user: User }) {
   // Compact header (Figma: Profile Header · Compact): appears once the profile tabs scroll out of view.
   const tabsRef = React.useRef<HTMLDivElement>(null)
   const [compact, setCompact] = React.useState(false)
+  const [wizardOpen, setWizardOpen] = React.useState(false)
   React.useEffect(() => {
     const el = tabsRef.current
     if (!el) return
@@ -92,18 +94,18 @@ export function ProfileScreen({ user }: { user: User }) {
       <div
         aria-hidden={!compact}
         className={cn(
-          "border-b border-(--border-divider) bg-(--surface-canvas) transition-[opacity,translate] duration-150",
+          "border-b border-l border-(--border-divider) bg-(--surface-canvas) transition-[opacity,translate] duration-150",
           compact ? "translate-y-0 opacity-100" : "pointer-events-none -translate-y-2 opacity-0"
         )}
       >
         <div className="mx-auto flex h-12 w-full max-w-[1544px] items-center gap-5 px-14">
           <div className="flex w-[189px] shrink-0 items-center gap-2 text-sm">
-            <Link href="/customers/users" tabIndex={compact ? 0 : -1} className="flex items-center gap-2 text-(color:--content-secondary) hover:text-(color:--content-default)">
+            <Link href="/customers/users" tabIndex={compact ? 0 : -1} className="flex items-center gap-2 font-medium text-white/70 hover:text-white">
               <ArrowLeft size={16} />
               Users
             </Link>
-            <span className="text-(color:--content-disabled)">/</span>
-            <span className="truncate text-(color:--content-secondary)">{user.name}</span>
+            <span className="text-(color:--content-tertiary)">/</span>
+            <span className="truncate font-medium text-(color:--content-tertiary)">{user.name}</span>
           </div>
           <Tabs value={tab} onValueChange={setTab} className="min-w-0 flex-1">
             <TabsLineList aria-label="Profile sections" className="h-12 border-b-0 px-0">
@@ -114,7 +116,7 @@ export function ProfileScreen({ user }: { user: User }) {
               ))}
             </TabsLineList>
           </Tabs>
-          <ProfileActions user={user} compact />
+          <ProfileActions user={user} compact onNewAccount={() => setWizardOpen(true)} />
         </div>
       </div>
     </div>
@@ -122,30 +124,30 @@ export function ProfileScreen({ user }: { user: User }) {
       <header className="flex flex-col gap-4">
         <Link
           href="/customers/users"
-          className="flex w-fit items-center gap-2 rounded-[2px] text-sm text-(color:--content-secondary) outline-none hover:text-(color:--content-default) focus-visible:shadow-[0_0_0_var(--focus-spread)_var(--focus-ring)]"
+          className="flex w-fit items-center gap-2 rounded-[2px] text-sm font-medium text-white/70 outline-none hover:text-white focus-visible:shadow-[0_0_0_var(--focus-spread)_var(--focus-ring)]"
         >
           <ArrowLeft size={16} />
           Users
         </Link>
 
-        <div className="flex flex-wrap items-end justify-between gap-4">
-          <div className="flex min-w-0 flex-col gap-1">
-            <h1 className="truncate text-lg leading-[1.3] font-medium text-(color:--content-default)">{user.name}</h1>
-            <span className="text-sm text-(color:--content-muted)">{user.email}</span>
-            <div className="mt-1 flex flex-wrap items-center gap-4 text-xs">
-              <StatusDot tone={user.verification === "verified" ? "positive" : "warning"} className="text-xs font-normal">
+        <div className="mt-2 flex flex-wrap items-end justify-between gap-4">
+          <div className="flex min-w-0 flex-col">
+            <h1 className="truncate text-2xl leading-[1.3] font-medium text-white/80">{user.name}</h1>
+            <span className="mt-1 text-sm leading-normal text-white/50">{user.email}</span>
+            <div className="mt-2 flex flex-wrap items-center gap-4 text-sm [&_[data-slot=status-dot]]:gap-2 [&_[data-slot=status-dot]]:text-sm [&_[data-slot=status-dot]]:font-medium [&_[data-slot=status-dot]]:text-white/50">
+              <StatusDot tone={user.verification === "verified" ? "positive" : "warning"} className="">
                 {user.verification === "verified" ? "Verified" : "Not verified"}
               </StatusDot>
-              <StatusDot tone={id.purchases === "Allowed" ? "positive" : "negative"} className="text-xs font-normal">
+              <StatusDot tone={id.purchases === "Allowed" ? "positive" : "negative"}>
                 Purchases {id.purchases.toLowerCase()}
               </StatusDot>
-              <StatusDot tone={id.fraud === "Flagged" ? "negative" : "neutral"} className="text-xs font-normal">
+              <StatusDot tone={id.fraud === "Flagged" ? "negative" : "neutral"} className={id.fraud === "Flagged" ? undefined : "[&>span:first-child]:bg-white/20"}>
                 {id.fraud}
               </StatusDot>
-              <span className="border-l border-(--border-divider) pl-4 text-(color:--content-muted)">Last activity · {lastActivity}</span>
+              <span className="border-l border-[#2e3130] pl-4 text-(color:--content-tertiary)">Last activity · {lastActivity}</span>
             </div>
           </div>
-          <ProfileActions user={user} />
+          <ProfileActions user={user} onNewAccount={() => setWizardOpen(true)} />
         </div>
       </header>
 
@@ -170,7 +172,7 @@ export function ProfileScreen({ user }: { user: User }) {
           <SubscriptionsTab />
         </TabsContent>
         <TabsContent value="trading">
-          <TradingTab />
+          <TradingTab onNewAccount={() => setWizardOpen(true)} />
         </TabsContent>
         <TabsContent value="activity">
           <ActivityTab />
@@ -180,6 +182,7 @@ export function ProfileScreen({ user }: { user: User }) {
         </TabsContent>
       </Tabs>
     </div>
+    <NewAccountWizard user={user} open={wizardOpen} onOpenChange={setWizardOpen} />
     </>
   )
 }

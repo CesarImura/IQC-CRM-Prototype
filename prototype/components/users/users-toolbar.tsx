@@ -1,7 +1,7 @@
 "use client"
 
 import * as React from "react"
-import { Close } from "@carbon/icons-react"
+import { Calendar, Close } from "@carbon/icons-react"
 
 import type { Role, UtmSource } from "@/lib/users/data"
 import {
@@ -13,7 +13,7 @@ import {
   type SearchField,
   type UsersFilters,
 } from "@/lib/users/query"
-import { Dropdown } from "@/components/dropdown"
+import { Dropdown, TimeFilter } from "@/components/dropdown"
 import { FilterButton, FilterChip, FilterChipApplied, FilterGroup, FilterPanel, FilterResultsBar } from "@/registry/iq/ui/filter"
 import { SearchBar } from "@/registry/iq/ui/search-bar"
 import { Toolbar, ToolbarDivider } from "@/registry/iq/ui/toolbar"
@@ -104,13 +104,12 @@ export function UsersToolbar({ filters, onFiltersChange, countFor, exportMenu }:
             value={filters.status === "any" ? null : filters.status}
             onValueChange={(v) => set("status", v as UsersFilters["status"])}
           />
-          <Dropdown
+          <TimeFilter
             label="Registered"
-            placeholder="Registered"
-            hideLabel
-            search={false}
+            placeholderWhenAny="Registered"
+            icon={<Calendar />}
             options={registeredOptions}
-            value={filters.registered === "any" ? null : filters.registered}
+            value={filters.registered}
             onValueChange={(v) => set("registered", v as RegisteredFilter)}
           />
           <ToolbarDivider />

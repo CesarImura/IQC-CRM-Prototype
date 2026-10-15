@@ -2,15 +2,14 @@
 
 import * as React from "react"
 import { useRouter } from "next/navigation"
-import { Add, CloseOutline, List, Time, User as UserIcon } from "@carbon/icons-react"
+import { Add, Calendar, CloseOutline, List, Time, User as UserIcon } from "@carbon/icons-react"
 
-import { ExportMenu } from "@/components/dropdown"
+import { ExportMenu, TimeFilter } from "@/components/dropdown"
 import { downloadCsv, downloadExcel } from "@/lib/export"
 import { TODAY, type User } from "@/lib/users/data"
 import { emptyFilters, getUserStats, queryUsers, type UsersFilters, type UsersSort, type UsersTab } from "@/lib/users/query"
 import { Button } from "@/registry/iq/ui/button"
 import { DataTable, type DataTableProps } from "@/registry/iq/ui/data-table"
-import { DatePicker } from "@/registry/iq/ui/date-picker"
 import { PageHeader } from "@/registry/iq/ui/page-header"
 import { SelectionBar } from "@/registry/iq/ui/selection-bar"
 import { StatCard } from "@/registry/iq/ui/stat-card"
@@ -21,6 +20,15 @@ import { AddUserModal, BanUserModal } from "./user-modals"
 import { UsersResultsBar, UsersToolbar } from "./users-toolbar"
 
 const PAGE_SIZE = 25
+const PERIODS = [
+  { value: "all", label: "All time" },
+  { value: "1", label: "Last 24 hours" },
+  { value: "7", label: "Last 7 days" },
+  { value: "30", label: "Last month" },
+  { value: "90", label: "Last quarter" },
+  { value: "365", label: "Last year" },
+]
+const PERIOD_DAYS: Record<string, number | undefined> = { "1": 1, "7": 7, "30": 30, "90": 90, "365": 365 }
 const fmt = (n: number) => n.toLocaleString("en-US")
 
 type Overrides = { added: User[]; patched: Map<string, Partial<User>> }
@@ -30,6 +38,7 @@ export function UsersScreen() {
   const router = useRouter()
   const [tab, setTab] = React.useState<UsersTab>("all")
   const [filters, setFiltersState] = React.useState<UsersFilters>(emptyFilters)
+  const [period, setPeriod] = React.useState("all")
   const [sorting, setSorting] = React.useState<NonNullable<DataTableProps<User>["sorting"]>>([])
   const [page, setPage] = React.useState({ pageIndex: 0, pageSize: PAGE_SIZE })
   const [selection, setSelection] = React.useState<Selection>({})
@@ -144,13 +153,17 @@ export function UsersScreen() {
         title="Users"
         actions={
           <div className="flex items-center gap-2">
-            <DatePicker
-              mode="range"
-              placeholder="All time"
-              today={TODAY}
-              maxDate={TODAY}
-              value={filters.period}
-              onValueChange={(period) => setFilters({ ...filters, period })}
+            <TimeFilter
+              label="Period"
+              icon={<Calendar />}
+              align="end"
+              options={PERIODS}
+              value={period}
+              onValueChange={(v) => {
+                setPeriod(v)
+                const days = PERIOD_DAYS[v]
+                setFilters({ ...filters, period: days ? { from: new Date(TODAY.getTime() - days * 86_400_000), to: TODAY } : { from: null, to: null } })
+              }}
             />
             <Button size="sm" onClick={() => setAddOpen(true)}>
               Add User
@@ -254,12 +267,22 @@ export function UsersScreen() {
         }}
         manualSorting
         pinnedRight={["actions"]}
-        onRowClick={(row) => router.push(`/customers/users/${row.original.id}`)}
+        onRowClick={(row) =>
+          // While rows are selected, a row click adds or removes it from the selection instead of opening the profile.
+          selectedIds.length > 0
+            ? setSelection((s) => {
+                const next = { ...s }
+                if (next[row.original.id]) delete next[row.original.id]
+                else next[row.original.id] = true
+                return next
+              })
+            : router.push(`/customers/users/${row.original.id}`)
+        }
         emptyState={{
           title: "No users match",
           description: "Try another search or remove a filter.",
           action: (
-            <Button variant="secondary" size="sm" onClick={() => setFilters(emptyFilters)}>
+            <Button variant="secondary" size="sm" onClick={() => { setFilters(emptyFilters); setPeriod("all") }}>
               Clear filters
             </Button>
           ),
@@ -271,8 +294,9 @@ export function UsersScreen() {
             setSelection({})
           },
           manual: { rowCount: result.total },
-          showPageSize: false,
-          summary: `${fmt(result.total)} Users`,
+          layout: "input",
+          pageSizeOptions: [25, 50, 100],
+          showPageSize: true,
         }}
       />
 

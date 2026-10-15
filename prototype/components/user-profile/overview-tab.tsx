@@ -2,14 +2,14 @@
 
 import * as React from "react"
 import Link from "next/link"
-import { UserAvatar } from "@carbon/icons-react"
+import { Calendar, UserAvatar } from "@carbon/icons-react"
 
 import type { User } from "@/lib/users/data"
 import { cashFlow, cashFlowKpis, identity, lastActivity, lifetime, money, upcomingCharges } from "@/lib/users/profile"
 import { cn } from "@/lib/utils"
 import { Badge, DeltaBadge } from "@/registry/iq/ui/badge"
 import { Button } from "@/registry/iq/ui/button"
-import { Dropdown } from "@/components/dropdown"
+import { TimeFilter } from "@/components/dropdown"
 import { FieldGrid, FieldGridRow } from "@/registry/iq/ui/field-grid"
 import { Pill } from "@/registry/iq/ui/pill"
 import { StatusDot } from "@/registry/iq/ui/status-dot"
@@ -29,18 +29,16 @@ export function OverviewTab({ user }: { user: User }) {
           title="Firm cash flow"
           info="Money the firm collected from this trader (purchases, renewals) against what it paid out (payouts, refunds)."
           actions={
-            <Dropdown
+            <TimeFilter
               label="Period"
-              hideLabel
-              size="sm"
+              icon={<Calendar />}
               align="end"
-              search={false}
-              value={range}
               options={[
+                { value: "all", label: "All time" },
                 { value: "year", label: "This year" },
                 { value: "12m", label: "Last 12 months" },
-                { value: "all", label: "All time" },
               ]}
+              value={range}
               onValueChange={setRange}
             />
           }

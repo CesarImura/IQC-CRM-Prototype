@@ -1,13 +1,13 @@
 "use client"
 
 import * as React from "react"
-import { Laptop, Mobile, Screen } from "@carbon/icons-react"
+import { Calendar, Laptop, Mobile, Screen } from "@carbon/icons-react"
 
-import { accountLogs, activity, engagement, heatmap, heatmapMonths, sessions, staffLogs, weekdays, type AccountLog, type ActivityEvent } from "@/lib/users/profile"
+import { accountLogs, activity, engagement, heatmap, sessions, staffLogs, weekdays, type AccountLog, type ActivityEvent } from "@/lib/users/profile"
 import { cn } from "@/lib/utils"
 import { Badge, DeltaBadge } from "@/registry/iq/ui/badge"
 import { Button } from "@/registry/iq/ui/button"
-import { Dropdown } from "@/components/dropdown"
+import { Dropdown, TimeFilter } from "@/components/dropdown"
 import { createDataTableColumnHelper, DataTable } from "@/registry/iq/ui/data-table"
 import { SearchBar } from "@/registry/iq/ui/search-bar"
 import { Tabs, TabsPillList, TabsPillTrigger } from "@/registry/iq/ui/tabs"
@@ -53,10 +53,54 @@ const LEVEL_OPACITY = [1, 0.3, 0.5, 0.72, 1]
 const dayStyle = (level: number): React.CSSProperties =>
   level === 0 ? { background: EMPTY_DAY } : { background: "var(--accent)", opacity: LEVEL_OPACITY[level] }
 
+const RANGES = [
+  { value: "all", label: "All", weeks: 52 },
+  { value: "90", label: "90 days", weeks: 13 },
+  { value: "60", label: "60 days", weeks: 9 },
+  { value: "30", label: "30 days", weeks: 5 },
+] as const
+type RangeValue = (typeof RANGES)[number]["value"]
+const DAY_MS = 86_400_000
+// Monday of the week of the prototype's "today" (14 Oct 2026).
+const LAST_WEEK_START = Date.UTC(2026, 9, 12)
+const shortDate = (t: number) => new Date(t).toLocaleDateString("en-GB", { day: "2-digit", month: "short", timeZone: "UTC" })
+
 function Engagement() {
-  const [range, setRange] = React.useState("all")
-  const weeks = React.useMemo(() => heatmap(), [])
-  const maxDay = Math.max(...weekdays.map((d) => d.days))
+  const [range, setRange] = React.useState<RangeValue>("all")
+  const all = React.useMemo(() => heatmap(), [])
+  const weeksCount = RANGES.find((r) => r.value === range)?.weeks ?? 52
+  const weeks = all.slice(all.length - weeksCount)
+  const starts = weeks.map((_, i) => LAST_WEEK_START - (weeksCount - 1 - i) * 7 * DAY_MS)
+
+  // Every number is read from the visible weeks, so stats, grid and weekday bars always agree.
+  const days = weeks.flat()
+  const active = days.filter((l) => l > 0).length
+  let streak = 0
+  let best = 0
+  let bestEnd = 0
+  weeks.forEach((w, wi) =>
+    w.forEach((l, d) => {
+      streak = l > 0 ? streak + 1 : 0
+      if (streak > best) {
+        best = streak
+        bestEnd = starts[wi] + d * DAY_MS
+      }
+    })
+  )
+  const byDay = weekdays.map((w, d) => ({ day: w.day, days: weeks.filter((wk) => wk[d] > 0).length }))
+  const maxDay = Math.max(1, ...byDay.map((d) => d.days))
+  const stats =
+    range === "all"
+      ? engagement
+      : [
+          { title: "Active days", value: String(active), caption: `${Math.round((active / days.length) * 100)}% of the last ${range} days` },
+          { title: "Longest streak", value: `${best} days`, caption: best ? `${shortDate(bestEnd - (best - 1) * DAY_MS)} – ${shortDate(bestEnd)}` : "—" },
+          { title: `Logins · ${range} days`, value: String(Math.round(active * 0.83)), caption: "3 devices · 1 country" },
+          { title: `Trading days · ${range} days`, value: String(Math.round(active * 0.78)), caption: "across 4 accounts" },
+          { title: `Orders · ${range} days`, value: range === "30" ? "1" : "2", caption: range === "30" ? "249.00 $ · renewal" : "338.00 $ · 2 renewals" },
+        ]
+  // Short ranges get bigger days (capped), so 5 weeks don't stretch across the whole card.
+  const cell = weeksCount >= 52 ? "minmax(0,1fr)" : weeksCount >= 13 ? "minmax(0,34px)" : "minmax(0,40px)"
 
   return (
     <Section
@@ -66,11 +110,13 @@ function Engagement() {
           <Button variant="secondary" size="sm" onClick={() => document.getElementById("sessions")?.scrollIntoView({ behavior: "smooth" })}>
             View sessions
           </Button>
-          <Tabs value={range} onValueChange={setRange}>
+          <Tabs value={range} onValueChange={(v) => setRange(v as RangeValue)}>
             <TabsPillList size="sm" aria-label="Period">
-              <TabsPillTrigger value="all">All</TabsPillTrigger>
-              <TabsPillTrigger value="30">30 days</TabsPillTrigger>
-              <TabsPillTrigger value="7">7 days</TabsPillTrigger>
+              {RANGES.map((r) => (
+                <TabsPillTrigger key={r.value} value={r.value}>
+                  {r.label}
+                </TabsPillTrigger>
+              ))}
             </TabsPillList>
           </Tabs>
         </>
@@ -78,42 +124,52 @@ function Engagement() {
     >
       <Card>
         <div className="flex flex-wrap border-b border-(--border-divider)">
-          {engagement.map((k) => (
+          {stats.map((k) => (
             <CompactStat key={k.title} {...k} />
           ))}
         </div>
         <div className="flex flex-col gap-6 px-6 pt-5 pb-5">
-          <div>
-            <div
-              className="grid w-full grid-cols-[29px_repeat(52,minmax(0,1fr))] gap-[4px]"
-              role="img"
-              aria-label="Active days over the last 12 months"
-            >
-              {heatmapMonths.map((m, i) => (
+          <div
+            className="grid gap-[4px]"
+            style={{ gridTemplateColumns: `29px repeat(${weeksCount}, ${cell})` }}
+            role="img"
+            aria-label={range === "all" ? "Active days over the last 12 months" : `Active days over the last ${range} days`}
+          >
+            {starts.map((t, i) => {
+              const d = new Date(t)
+              const prev = i > 0 ? new Date(starts[i - 1]) : null
+              const showMonth = weeksCount >= 52 ? !prev || prev.getUTCMonth() !== d.getUTCMonth() : true
+              if (!showMonth) return null
+              return (
                 <span
-                  key={m}
-                  className="row-start-1 text-[11px] leading-none text-(color:--content-tertiary)"
-                  style={{ gridColumnStart: 2 + Math.round((i * 52) / 12) }}
+                  key={`m${i}`}
+                  className="row-start-1 text-[11px] leading-none whitespace-nowrap text-(color:--content-tertiary)"
+                  style={{ gridColumnStart: i + 2 }}
                 >
-                  {m}
+                  {weeksCount >= 52 ? d.toLocaleDateString("en-GB", { month: "short", timeZone: "UTC" }) : weeksCount > 9 && i % 2 ? "" : shortDate(t)}
                 </span>
-              ))}
-              {["Mon", "Wed", "Fri"].map((d, i) => (
-                <span key={d} className="col-start-1 self-center text-[11px] leading-none text-(color:--content-tertiary)" style={{ gridRowStart: 2 + i * 2 }}>
-                  {d}
-                </span>
-              ))}
-              {weeks.flatMap((week, w) =>
-                week.map((level, d) => (
-                  <span key={`${w}-${d}`} className="aspect-square rounded-[2px]" style={{ gridColumnStart: w + 2, gridRowStart: d + 2, ...dayStyle(level) }} />
-                ))
-              )}
-            </div>
+              )
+            })}
+            {["Mon", "Wed", "Fri"].map((d, i) => (
+              <span key={d} className="col-start-1 self-center text-[11px] leading-none text-(color:--content-tertiary)" style={{ gridRowStart: 2 + i * 2 }}>
+                {d}
+              </span>
+            ))}
+            {weeks.flatMap((week, w) =>
+              week.map((level, d) => (
+                <span
+                  key={`${w}-${d}`}
+                  title={`${shortDate(starts[w] + d * DAY_MS)} · ${level ? "active" : "no activity"}`}
+                  className="aspect-square rounded-[2px]"
+                  style={{ gridColumnStart: w + 2, gridRowStart: d + 2, ...dayStyle(level) }}
+                />
+              ))
+            )}
           </div>
           <div className="flex flex-wrap items-center justify-between gap-4">
             <div className="flex flex-wrap items-center gap-[14px] text-xs leading-4">
               <span className="text-[12.5px] text-(color:--content-tertiary)">Active days by weekday</span>
-              {weekdays.map((d) => {
+              {byDay.map((d) => {
                 const top = d.days === maxDay
                 return (
                   <span key={d.day} className="flex items-center gap-2">
@@ -181,7 +237,7 @@ function AccountLogs() {
       <DataTable
         columns={logColumns}
         data={rows}
-        pagination={{ showPageSize: false, summary: `${rows.length} items` }}
+        pagination={{ showPageSize: true, pageSizeOptions: [10, 25, 50] }}
         toolbar={
           <Toolbar surface={false} className="w-full"
             filters={
@@ -250,7 +306,7 @@ function Timeline() {
       <DataTable
         columns={evColumns}
         data={rows}
-        pagination={{ showPageSize: false, summary: `${rows.length} events` }}
+        pagination={{ showPageSize: true, pageSizeOptions: [10, 25, 50] }}
         toolbar={
           <Toolbar surface={false} className="w-full"
             filters={
@@ -272,17 +328,16 @@ function Timeline() {
                   ]}
                   onValueChange={setKind}
                 />
-                <Dropdown
+                <TimeFilter
                   label="Period"
-                  hideLabel
-                  size="sm"
-                  search={false}
-                  value={period}
+                  icon={<Calendar />}
                   options={[
-                    { value: "12m", label: "Last 12 months" },
-                    { value: "30d", label: "Last 30 days" },
                     { value: "all", label: "All time" },
+                    { value: "30d", label: "Last 30 days" },
+                    { value: "90d", label: "Last 90 days" },
+                    { value: "12m", label: "Last 12 months" },
                   ]}
+                  value={period}
                   onValueChange={setPeriod}
                 />
               </>
@@ -322,9 +377,9 @@ function Sessions() {
         />
       }
     >
-      <Card id="sessions" className="divide-y divide-(--border-grid)">
+      <Card id="sessions" className="flex flex-1 flex-col divide-y divide-(--border-grid)">
         {rows.map((s, i) => (
-          <div key={i} className="flex items-center gap-3 px-4 py-4">
+          <div key={i} className="flex flex-1 items-center gap-3 px-4 py-4">
             <span className="flex size-9 shrink-0 items-center justify-center rounded-[2px] border border-(--border-grid) text-(color:--content-secondary)">
               {deviceIcon[s.kind]}
             </span>
@@ -364,9 +419,9 @@ function StaffLogs() {
         />
       }
     >
-      <Card className="divide-y divide-(--border-grid)">
+      <Card className="flex flex-1 flex-col divide-y divide-(--border-grid)">
         {rows.map((l) => (
-          <div key={l.title + l.date} className="flex items-start justify-between gap-3 px-4 py-4">
+          <div key={l.title + l.date} className="flex flex-1 items-center justify-between gap-3 px-4 py-4">
             <div className="flex min-w-0 flex-col gap-1">
               <span className="text-sm text-(color:--content-default)">{l.title}</span>
               <span className="flex min-w-0 items-center gap-2">

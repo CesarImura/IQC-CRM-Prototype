@@ -23,7 +23,7 @@ const TABS: { value: TradingTabValue; label: string; icon: React.ReactNode; tone
   { value: "breached", label: "Breached", icon: <CloseOutline />, tone: "danger" },
 ]
 
-export function TradingTab() {
+export function TradingTab({ onNewAccount }: { onNewAccount: () => void }) {
   const [tab, setTab] = React.useState<TradingTabValue>("challenge")
   const accounts = tradingAccounts.filter((a) => a.tab === tab)
 
@@ -62,7 +62,7 @@ export function TradingTab() {
             <Button variant="secondary" size="sm" onClick={() => notYet("Risk logs")}>
               Risk logs
             </Button>
-            <Button size="sm" onClick={() => notYet("New account")}>
+            <Button size="sm" onClick={onNewAccount}>
               New account
             </Button>
           </>

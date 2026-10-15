@@ -41,6 +41,7 @@ const isoDaysAgo = (days: number) => new Date(TODAY.getTime() - days * DAY).toIS
 
 const figmaRows: User[] = [
   { id: "3083cd1f9b2a4e0c8d71a5f2c6b0ece3", email: "cesar@yunicorn.vc", name: "Cesar Imura", username: "CI Trades", accounts: 6, accountTypes: ["challenge", "funding", "instant_funding"], breached: false, status: "active", banReason: null, verification: "verified", affiliate: null, registered: isoDaysAgo(0), role: "owner", phone: "+55 11 98123-0042", utm: "google" },
+  { id: "d4v1k1in5ma2n4b7c9e1f3a5b7c9d0e2", email: "davi@iqcapital.io", name: "Davi Klinsmann", username: "davik", accounts: 1, accountTypes: ["instant_funding"], breached: false, status: "active", banReason: null, verification: "verified", affiliate: null, registered: isoDaysAgo(0), role: "client", phone: "+55 11 99876-5512", utm: "google" },
   { id: "a91c02de4f7b4d1e9a3c0b8e5d2f77b1", email: "maria.l@gmail.com", name: "Maria Lopes", username: "mlopes", accounts: 2, accountTypes: ["challenge", "funding"], breached: false, status: "active", banReason: null, verification: "verified", affiliate: "partner@alpha.io", registered: isoDaysAgo(1), role: "client", phone: "+55 21 99812-4410", utm: "meta" },
   { id: "5f2e8a10c3d94b7f8e2a1d6c9b40c03d", email: "trader.jp@proton.me", name: "Kenji Tanaka", username: "jp_scalper", accounts: 1, accountTypes: ["challenge"], breached: false, status: "active", banReason: null, verification: "verified", affiliate: null, registered: isoDaysAgo(1), role: "client", phone: "+81 90 4412 8803", utm: "youtube" },
   { id: "0de4b7f21a8c4e5d9f3b6a2c7e1d9a12", email: "ahmed.k@outlook.com", name: "Ahmed Karim", username: "akarim", accounts: 1, accountTypes: ["instant_funding"], breached: false, status: "active", banReason: null, verification: "verified", affiliate: "fx.guru@mail.com", registered: isoDaysAgo(2), role: "client", phone: "+971 50 118 2204", utm: "google" },
@@ -88,8 +89,8 @@ const GENERATED = TOTAL_USERS - figmaRows.length
 const BANNED = 311 - 2
 const KYC_PENDING = 1_204 - 2
 const SUSPENDED = 643 - 2
-const NEW_7D = 812 - 11
-const NEW_30D = 3_420 - 11
+const NEW_7D = 812 - figmaRows.length
+const NEW_30D = 3_420 - figmaRows.length
 
 function makeUser(i: number): User {
   const first = pick(FIRST, i, 1)
