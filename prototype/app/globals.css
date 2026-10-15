@@ -216,3 +216,85 @@ body {
     transform: translateX(100%);
   }
 }
+
+/* ---- Prototype fixes to match the Platform file (Users · All) ---- */
+
+/* Sub Menu title row is 48px, so its divider lines up with the Page Title / KPI strip edge. */
+[data-slot="sub-menu"] > p {
+  display: flex;
+  align-items: center;
+  height: 48px;
+  padding-block: 0;
+}
+
+/* Side Menu (Figma _Side Menu / Link): inactive icons at white 50%, labels at 70%; the active link keeps the accent. */
+[data-rail] [data-slot="side-menu-link"]:not([aria-current="page"]) {
+  color: var(--primitive-white-70);
+}
+[data-rail] [data-slot="side-menu-link"]:not([aria-current="page"]) svg {
+  color: var(--content-muted);
+}
+[data-rail] [data-slot="side-menu-link"]:not([aria-current="page"]):hover,
+[data-rail] [data-slot="side-menu-link"]:not([aria-current="page"]):hover svg {
+  color: var(--content-default);
+}
+[data-rail][data-expanded="true"] [data-slot="side-menu-link"] {
+  width: 100%;
+}
+
+/* Geist proportional figures, as in Figma (tabular figures draw a "1" with a foot). */
+.tabular-nums {
+  font-variant-numeric: normal;
+}
+
+/* Select-all checkbox: same inset as the row checkboxes below it. */
+[data-slot="data-table"] thead th:has(button[role="checkbox"]) {
+  padding-left: var(--table-cell-px);
+}
+
+/* Mouse clicks don't leave a focus ring on tabs; keyboard focus still shows it. */
+html[data-input="pointer"] [data-slot="tabs-line-trigger"]:focus-visible {
+  border-radius: 0;
+  background-color: transparent;
+  box-shadow: none;
+}
+html[data-input="pointer"] [data-slot="tabs-line-trigger"][data-state="active"]:focus-visible {
+  box-shadow: inset 0 calc(-1 * var(--tabs-line-stroke)) 0 var(--tab-tone);
+}
+html[data-input="pointer"] [data-slot="tabs-pill-trigger"]:focus-visible {
+  box-shadow: none;
+}
+
+/* Sub Menu group label ("Manage"): Geist 14 at white 30%, as in Figma (the DS draws it in Mono). */
+[data-slot="sub-menu-group"] > p {
+  font-family: var(--font-sans);
+  color: #ffffff4d;
+}
+
+/* ---- Round 2 ---- */
+
+/* One frame stroke everywhere outside the tables: solid #252827 (border/divider), so overlapping lines don't get
+   lighter. Only the table grid inside stays darker (border/grid). */
+:root {
+  --nav-border: var(--border-divider);
+  --toolbar-border: var(--border-divider);
+  --stat-card-border: var(--border-divider);
+  --tabs-line-divider: var(--border-divider);
+}
+/* The table's first column sits on the Sub Menu stroke: keep that edge in the frame color. */
+[data-slot="data-table"] :is(th, td):first-child {
+  border-left-color: var(--border-divider);
+}
+
+/* Dropdown panels hug their options, but never narrower than this. */
+[data-slot="option-panel"] {
+  min-width: 176px;
+}
+[data-radix-popper-content-wrapper] > .w-56:has([data-slot="option-panel"]) {
+  width: max-content;
+}
+
+/* Row action buttons (⋮) in tables: Secondary stroke, as in Figma (Cell · actions). */
+[data-slot="data-table"] td button[aria-haspopup="listbox"] {
+  border: 1px solid var(--button-secondary-border-default);
+}

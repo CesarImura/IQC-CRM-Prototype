@@ -4,7 +4,7 @@ import { OverflowMenuVertical, UserAvatar } from "@carbon/icons-react"
 
 import type { Role, User, UserStatus, UtmSource, Verification } from "@/lib/users/data"
 import { Badge, type BadgeColor } from "@/registry/iq/ui/badge"
-import { Dropdown } from "@/registry/iq/ui/combobox"
+import { Dropdown } from "@/components/dropdown"
 import { createDataTableColumnHelper } from "@/registry/iq/ui/data-table"
 import { Pill } from "@/registry/iq/ui/pill"
 import { StatusDot, type StatusTone } from "@/registry/iq/ui/status-dot"

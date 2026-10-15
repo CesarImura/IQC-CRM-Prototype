@@ -1,12 +1,14 @@
 "use client"
 
 import * as React from "react"
+import { useRouter } from "next/navigation"
 import { Add, CloseOutline, List, Time, User as UserIcon } from "@carbon/icons-react"
 
+import { ExportMenu } from "@/components/dropdown"
+import { downloadCsv, downloadExcel } from "@/lib/export"
 import { TODAY, type User } from "@/lib/users/data"
 import { emptyFilters, getUserStats, queryUsers, type UsersFilters, type UsersSort, type UsersTab } from "@/lib/users/query"
 import { Button } from "@/registry/iq/ui/button"
-import { Dropdown } from "@/registry/iq/ui/combobox"
 import { DataTable, type DataTableProps } from "@/registry/iq/ui/data-table"
 import { DatePicker } from "@/registry/iq/ui/date-picker"
 import { PageHeader } from "@/registry/iq/ui/page-header"
@@ -25,6 +27,7 @@ type Overrides = { added: User[]; patched: Map<string, Partial<User>> }
 type Selection = NonNullable<DataTableProps<User>["rowSelection"]>
 
 export function UsersScreen() {
+  const router = useRouter()
   const [tab, setTab] = React.useState<UsersTab>("all")
   const [filters, setFiltersState] = React.useState<UsersFilters>(emptyFilters)
   const [sorting, setSorting] = React.useState<NonNullable<DataTableProps<User>["sorting"]>>([])
@@ -87,8 +90,10 @@ export function UsersScreen() {
     (user: User, action: RowAction) => {
       switch (action) {
         case "view":
+          router.push(`/customers/users/${user.id}`)
+          break
         case "edit":
-          toast.info(`${action === "view" ? "User profile" : "Edit user"} isn’t in this prototype yet`, { description: user.email })
+          toast.info("Edit user isn’t in this prototype yet", { description: user.email })
           break
         case "suspend":
           changeStatus([user], { status: "suspended" }, `${user.name} suspended`)
@@ -112,21 +117,25 @@ export function UsersScreen() {
   const selectedIds = Object.keys(selection).filter((id) => selection[id])
   const selectedUsers = () => result.rows.filter((u) => selectedIds.includes(u.id))
 
-  function exportCsv(scope: "results" | "selected") {
-    const rows =
-      scope === "selected"
-        ? selectedUsers()
-        : queryUsers({ tab, filters, sort, page: 0, pageSize: Number.MAX_SAFE_INTEGER }, overrides).rows
-    const header = ["User ID", "Email", "Name", "Username", "Accounts", "Status", "Ban Reason", "Verified", "Affiliate", "Registered", "Role", "Phone", "UTM Source"]
-    const escape = (v: unknown) => `"${String(v ?? "").replace(/"/g, '""')}"`
-    const csv = [header, ...rows.map((u) => [u.id, u.email, u.name, u.username, u.accounts, statusMeta[u.status].label, u.banReason, u.verification, u.affiliate, u.registered, u.role, u.phone, u.utm])]
-      .map((r) => r.map(escape).join(","))
-      .join("\n")
-    const url = URL.createObjectURL(new Blob([csv], { type: "text/csv" }))
-    const a = Object.assign(document.createElement("a"), { href: url, download: `users-${TODAY.toISOString().slice(0, 10)}.csv` })
-    a.click()
-    URL.revokeObjectURL(url)
-    toast.success(`Exported ${fmt(rows.length)} users`, { description: "CSV downloaded" })
+  const EXPORT_HEADER = ["User ID", "Email", "Name", "Username", "Accounts", "Status", "Ban Reason", "Verified", "Affiliate", "Registered", "Role", "Phone", "UTM Source"]
+  const exportRow = (u: User) => [u.id, u.email, u.name, u.username, u.accounts, statusMeta[u.status].label, u.banReason, u.verification, u.affiliate, u.registered, u.role, u.phone, u.utm]
+
+  function exportFiles(choices: string[], selectedOnly = false) {
+    const stamp = TODAY.toISOString().slice(0, 10)
+    const sets = {
+      view: () => queryUsers({ tab, filters, sort, page: 0, pageSize: Number.MAX_SAFE_INTEGER }, overrides).rows,
+      all: () => queryUsers({ tab: "all", filters: emptyFilters, sort: null, page: 0, pageSize: Number.MAX_SAFE_INTEGER }, overrides).rows,
+    }
+    let total = 0
+    for (const choice of choices) {
+      const [scope, format] = choice.split("-") as ["view" | "all", "csv" | "xlsx"]
+      const rows = selectedOnly ? selectedUsers() : sets[scope]()
+      const name = `users-${selectedOnly ? "selected" : scope === "view" ? `${tab.replace("_", "-")}-view` : "all"}-${stamp}`
+      if (format === "csv") downloadCsv(name, EXPORT_HEADER, rows.map(exportRow))
+      else downloadExcel(name, "Users", EXPORT_HEADER, rows.map(exportRow))
+      total = Math.max(total, rows.length)
+    }
+    toast.success(choices.length > 1 ? `${choices.length} files exported` : `Exported ${fmt(total)} users`, { description: "Download started" })
   }
 
   return (
@@ -152,8 +161,8 @@ export function UsersScreen() {
       />
 
       {/* KPI strip: four compact Stat Cards sharing borders. */}
-      <section aria-label="Key numbers" className="grid grid-cols-2 xl:grid-cols-4 [&>*]:-mr-px [&>*]:-mb-px [&>*]:h-[140px]">
-        <StatCard title="Users" value={fmt(stats.total)} caption={`+${fmt(stats.new7)} in the last 7 days`} className="rounded-l-[4px]" />
+      <section aria-label="Key numbers" className="flex [&>*]:h-[140px] [&>*]:min-w-0 [&>*]:flex-1 [&>*:not(:first-child)]:-ml-px">
+        <StatCard title="Users" value={fmt(stats.total)} caption={`+${fmt(stats.new7)} in the last 7 days`} />
         <StatCard title="New · 30 days" value={fmt(stats.new30)} valueTone="positive" caption={`Registered · ${stats.new30BoughtPct}% bought a challenge`} />
         <StatCard title="KYC verified" value={`${stats.verifiedPct.toFixed(1)}%`} caption={`${fmt(stats.pending)} waiting for review`} />
         <StatCard
@@ -161,7 +170,6 @@ export function UsersScreen() {
           value={fmt(stats.banned)}
           valueTone="negative"
           caption={`${stats.bannedPct.toFixed(1)}% · ${stats.bannedThisMonth} this month`}
-          className="rounded-r-[4px]"
         />
       </section>
 
@@ -173,7 +181,7 @@ export function UsersScreen() {
         }}
         className="gap-0"
       >
-        <TabsLineList aria-label="User views" className="bg-(--surface-raised)">
+        <TabsLineList aria-label="User views" className="border-x border-(--border-divider) bg-(--surface-raised)">
           <TabsLineTrigger value="all" tone="accent" icon={<List />} count={fmt(result.tabCounts.all)}>
             All
           </TabsLineTrigger>
@@ -191,18 +199,14 @@ export function UsersScreen() {
         onFiltersChange={setFilters}
         countFor={countFor}
         exportMenu={
-          <Dropdown
-            label="Export"
-            placeholder="Export"
-            hideLabel
-            align="end"
-            search={false}
-            value={null}
+          <ExportMenu
             options={[
-              { value: "results", label: `CSV · all ${fmt(result.total)} results` },
-              { value: "selected", label: `CSV · ${fmt(selectedIds.length)} selected`, disabled: selectedIds.length === 0 },
+              { value: "view-csv", label: "Current view · CSV" },
+              { value: "view-xlsx", label: "Current view · Excel" },
+              { value: "all-csv", label: "All users · CSV" },
+              { value: "all-xlsx", label: "All users · Excel" },
             ]}
-            onValueChange={(v) => exportCsv(v as "results" | "selected")}
+            onExport={(choices) => exportFiles(choices)}
           />
         }
       />
@@ -211,7 +215,7 @@ export function UsersScreen() {
 
       {selectedIds.length > 0 && (
         <SelectionBar count={selectedIds.length} onClear={() => setSelection({})} className="border-t-0">
-          <Button variant="secondary" size="sm" onClick={() => exportCsv("selected")}>
+          <Button variant="secondary" size="sm" onClick={() => exportFiles(["view-csv"], true)}>
             Export
           </Button>
           <Button variant="secondary" size="sm" onClick={() => changeStatus(selectedUsers(), { status: "suspended" }, `${selectedIds.length} users suspended`)}>
@@ -231,7 +235,7 @@ export function UsersScreen() {
       )}
 
       <DataTable
-        className="min-w-0 flex-1"
+        className="-mt-px min-w-0 flex-1"
         columns={columns}
         data={result.rows}
         getRowId={(row) => row.id}
@@ -250,6 +254,7 @@ export function UsersScreen() {
         }}
         manualSorting
         pinnedRight={["actions"]}
+        onRowClick={(row) => router.push(`/customers/users/${row.original.id}`)}
         emptyState={{
           title: "No users match",
           description: "Try another search or remove a filter.",

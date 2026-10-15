@@ -1,6 +1,7 @@
 "use client"
 
 import * as React from "react"
+import { Close } from "@carbon/icons-react"
 
 import type { Role, UtmSource } from "@/lib/users/data"
 import {
@@ -12,7 +13,7 @@ import {
   type SearchField,
   type UsersFilters,
 } from "@/lib/users/query"
-import { Dropdown } from "@/registry/iq/ui/combobox"
+import { Dropdown } from "@/components/dropdown"
 import { FilterButton, FilterChip, FilterChipApplied, FilterGroup, FilterPanel, FilterResultsBar } from "@/registry/iq/ui/filter"
 import { SearchBar } from "@/registry/iq/ui/search-bar"
 import { Toolbar, ToolbarDivider } from "@/registry/iq/ui/toolbar"
@@ -73,6 +74,7 @@ export function UsersToolbar({ filters, onFiltersChange, countFor, exportMenu }:
 
   return (
     <Toolbar
+      className="relative z-10 -mt-px"
       filters={
         <>
           <div className="w-[398px] max-w-full">
@@ -112,7 +114,20 @@ export function UsersToolbar({ filters, onFiltersChange, countFor, exportMenu }:
             onValueChange={(v) => set("registered", v as RegisteredFilter)}
           />
           <ToolbarDivider />
-          <MoreFilters filters={filters} onApply={onFiltersChange} countFor={countFor} />
+          <div className="flex items-center">
+            <MoreFilters filters={filters} onApply={onFiltersChange} countFor={countFor} />
+            {countPanelFilters(filters) > 0 && (
+              <button
+                type="button"
+                aria-label="Clear more filters"
+                title="Clear more filters"
+                onClick={() => onFiltersChange({ ...filters, roles: [], affiliate: "any", affiliateEmail: "", utm: [] })}
+                className="inline-flex h-(--button-size-sm-height) cursor-pointer items-center rounded-r-(--button-radius-control) border border-l-0 border-(--filter-chip-border-selected) bg-(--button-secondary-bg-default) pr-2.5 pl-1 text-(color:--badge-dismiss) outline-none hover:text-(color:--content-default) focus-visible:shadow-[0_0_0_var(--focus-spread)_var(--focus-ring)]"
+              >
+                <Close size={16} />
+              </button>
+            )}
+          </div>
         </>
       }
       actions={exportMenu}
@@ -134,7 +149,7 @@ function MoreFilters({ filters, onApply, countFor }: { filters: UsersFilters; on
     <FilterPanel
       open={open}
       onOpenChange={openChange}
-      trigger={<FilterButton count={countPanelFilters(filters)} open={open} />}
+      trigger={<FilterButton count={countPanelFilters(filters)} open={open} className={countPanelFilters(filters) > 0 ? "rounded-r-none border-r-0" : undefined} />}
       onClear={() => setDraft({ ...draft, roles: [], affiliate: "any", affiliateEmail: "", utm: [] })}
       onCancel={() => setOpen(false)}
       applyLabel={`Show ${count.toLocaleString("en-US")} results`}
@@ -222,7 +237,7 @@ export function UsersResultsBar({ filters, onFiltersChange, total }: { filters: 
 
   if (chips.length === 0) return null
   return (
-    <FilterResultsBar count={`${total.toLocaleString("en-US")} users`} onClearAll={() => onFiltersChange(emptyFilters)} className="border-x border-b border-(--border-panel) bg-(--surface-raised)">
+    <FilterResultsBar count={`${total.toLocaleString("en-US")} users`} onClearAll={() => onFiltersChange(emptyFilters)} className="relative z-10 border-x border-b border-(--border-divider) bg-(--surface-raised)">
       {chips.map((c) => (
         <FilterChipApplied key={c.key} label={c.label} value={c.value} onRemove={c.clear} />
       ))}

@@ -1,6 +1,7 @@
 import type { CarbonIconType } from "@carbon/icons-react"
 import {
   Account,
+  DiamondOutline,
   ChartRing,
   Chat,
   Filter,
@@ -58,6 +59,7 @@ export const navGroups: NavSection[][] = [
   [section("payments", "Payments, fraud & risk", Money), section("refunds", "Refunds", PricingContainer), section("risk", "Risk & compliance", Rule)],
   [section("reporting", "Reporting & analytics", ChartRing), section("communication", "Communication", Chat), section("utilities", "Utilities", Tools)],
   [section("integrations", "Integrations & system", Network_2), section("connected", "Connected systems", LinkIcon)],
+  [{ id: "ui-library", title: "UI library", icon: DiamondOutline, href: "https://iqc-crm-design-system.vercel.app/docs", groups: [{ links: [] }] }],
 ]
 
 function section(id: string, title: string, icon: CarbonIconType): NavSection {
