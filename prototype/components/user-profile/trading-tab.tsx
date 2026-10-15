@@ -1,13 +1,13 @@
 "use client"
 
 import * as React from "react"
-import { Activity, CheckmarkOutline, CloseOutline, Flag, Grid, List, OverflowMenuVertical } from "@carbon/icons-react"
+import { Activity, Catalog, CheckmarkOutline, CloseOutline, Flag, Grid, List, OverflowMenuVertical, Renew, Unlink } from "@carbon/icons-react"
 
 import { providers, tradingAccounts, type Provider, type TradingAccount, type TradingTab as TradingTabValue } from "@/lib/users/profile"
 import { cn } from "@/lib/utils"
 import { Badge } from "@/registry/iq/ui/badge"
 import { Button } from "@/registry/iq/ui/button"
-import { Dropdown } from "@/components/dropdown"
+import { ActionMenu } from "@/components/dropdown"
 import { PartnerMark } from "@/registry/iq/ui/partner-logo"
 import { StatusDot } from "@/registry/iq/ui/status-dot"
 import { Tabs, TabsLineList, TabsLineTrigger, TabsPillList, TabsPillTrigger } from "@/registry/iq/ui/tabs"
@@ -105,18 +105,17 @@ function ProviderCard({ provider }: { provider: Provider }) {
             {provider.connection.label}
           </StatusDot>
         </div>
-        <Dropdown
+        <ActionMenu
           label={`Actions for ${provider.name}`}
           iconOnly={<OverflowMenuVertical />}
-          align="end"
-          search={false}
-          value={null}
-          options={[
-            { value: "logs", label: "Connection logs" },
-            { value: "resync", label: "Resync" },
-            { value: "disconnect", label: "Disconnect", tone: "danger" },
+          sections={[
+            [
+              { value: "logs", label: "Connection logs", icon: <Catalog /> },
+              { value: "resync", label: "Resync", icon: <Renew /> },
+            ],
+            [{ value: "disconnect", label: "Disconnect", icon: <Unlink />, tone: "danger" }],
           ]}
-          onValueChange={() => notYet("This action")}
+          onSelect={() => notYet("This action")}
         />
       </div>
       <div className="grid grid-cols-2 gap-x-4 gap-y-4 border-t border-(--border-grid) p-4">

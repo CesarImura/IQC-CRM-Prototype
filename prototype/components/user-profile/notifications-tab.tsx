@@ -33,9 +33,7 @@ const columns = col.columns([
     header: "Type",
     size: 180,
     cell: (i) => (
-      <Badge color="white" variant="outline" size="md" className="rounded-full">
-        {i.getValue()}
-      </Badge>
+      <span className="inline-flex rounded-full bg-(--primitive-white-8) px-1.5 py-0.5 text-sm font-medium whitespace-nowrap text-[#b7bcc5]">{i.getValue()}</span>
     ),
   }),
   col.accessor("category", { header: "Category", size: 180, cell: (i) => <ValueText>{i.getValue()}</ValueText> }),

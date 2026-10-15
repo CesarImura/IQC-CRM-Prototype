@@ -13,6 +13,71 @@ export function Dropdown(props: DropdownProps) {
   return <DsDropdown panelWidth="max-content" {...props} />
 }
 
+export type ActionItem = { value: string; label: string; icon?: React.ReactNode; tone?: "neutral" | "warning" | "danger" }
+
+/**
+ * Action menu: Dropdown trigger (text or icon-only) and an Option Panel with icons. `sections` are split by a divider;
+ * `columns` lays the sections side by side with a vertical divider (Figma: Actions · panel of the User Profile).
+ */
+export function ActionMenu({
+  label,
+  iconOnly,
+  sections,
+  columns = false,
+  align = "end",
+  onSelect,
+}: {
+  label: string
+  iconOnly?: React.ReactNode
+  sections: ActionItem[][]
+  columns?: boolean
+  align?: "start" | "end"
+  onSelect: (value: string) => void
+}) {
+  const [open, setOpen] = React.useState(false)
+  return (
+    <Popover.Root open={open} onOpenChange={setOpen}>
+      <Popover.Trigger type="button" aria-label={iconOnly ? label : undefined} data-open={open} className={triggerClasses("sm", false, Boolean(iconOnly))}>
+        {iconOnly ? <span className="flex text-(color:--content-default)">{iconOnly}</span> : <TriggerContent placeholder={label} open={open} />}
+      </Popover.Trigger>
+      <Popover.Portal>
+        <Popover.Content align={align} sideOffset={8} className="z-50 outline-none" onClick={(e) => e.stopPropagation()}>
+          <OptionPanel aria-label={label} className="w-max">
+            <OptionPanelList className="max-h-none">
+              <div className={columns ? "flex" : "flex flex-col"}>
+                {sections.map((items, i) => (
+                  <div
+                    key={i}
+                    className={
+                      columns
+                        ? "flex min-w-[208px] flex-col gap-(--option-item-gap) [&:not(:first-child)]:ml-(--option-panel-padding) [&:not(:first-child)]:border-l [&:not(:first-child)]:border-(--option-panel-border) [&:not(:first-child)]:pl-(--option-panel-padding)"
+                        : "flex flex-col gap-(--option-item-gap) [&:not(:first-child)]:mt-(--option-panel-padding) [&:not(:first-child)]:border-t [&:not(:first-child)]:border-(--option-panel-border) [&:not(:first-child)]:pt-(--option-panel-padding)"
+                    }
+                  >
+                    {items.map((item) => (
+                      <OptionItem
+                        key={item.value}
+                        value={item.value}
+                        label={item.label}
+                        icon={item.icon}
+                        tone={item.tone}
+                        onSelect={() => {
+                          setOpen(false)
+                          onSelect(item.value)
+                        }}
+                      />
+                    ))}
+                  </div>
+                ))}
+              </div>
+            </OptionPanelList>
+          </OptionPanel>
+        </Popover.Content>
+      </Popover.Portal>
+    </Popover.Root>
+  )
+}
+
 export type ExportOption = { value: string; label: string }
 
 /** Export: a Dropdown-looking trigger, checkbox options and a primary Export button (Figma: Export · panel). */

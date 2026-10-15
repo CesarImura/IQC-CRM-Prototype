@@ -174,7 +174,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         </SubMenu>
 
         {/* -1px: the content's left strokes sit on the Sub Menu stroke, as in Figma. */}
-        <div className="-ml-px min-w-0 flex-1 overflow-x-hidden overflow-y-auto">{children}</div>
+        <div className="relative -ml-px min-w-0 flex-1 overflow-x-hidden overflow-y-auto">{children}</div>
       </div>
     </div>
   )

@@ -318,3 +318,43 @@ html[data-input="pointer"] :is(button, a, [role="tab"], [role="checkbox"], [role
 
 /* Engagement heatmap and stats: see components/user-profile/activity-tab.tsx (Figma Card · Engagement). */
 /* profile stats: CompactStat in components/user-profile/shared.tsx */
+
+/* ---- Round 4 ---- */
+
+/* Page titles: Geist Medium 18 (Figma _Utility / Page Title). */
+[data-slot="page-header"] h1 {
+  font-size: 18px;
+}
+
+/* Cards with rows: the last row has no bottom stroke (the card border closes it). */
+[data-slot="field-grid"] > :last-child,
+[data-slot="field-grid"][class*="grid-cols-2"] > :nth-last-child(2):nth-child(odd) {
+  border-bottom-color: transparent;
+}
+
+/* Tabs / Pill (Small) as tall as the Small buttons next to it: 32px. */
+[data-slot="tabs-pill-list"][data-size="sm"] {
+  height: var(--button-size-sm-height);
+  align-items: stretch;
+}
+[data-slot="tabs-pill-list"][data-size="sm"] [data-slot="tabs-pill-trigger"] {
+  height: auto;
+  padding-block: 0;
+}
+
+/* Table text at white 80% and headers as in Figma (the DS draws both at 100%). */
+:root {
+  --value-slot-text: var(--primitive-white-80);
+  --table-text: var(--primitive-white-80);
+}
+
+/* Pagination: framed like the table above it; page buttons keep their stroke when disabled. */
+[data-slot="data-table"] [data-slot="pagination"] {
+  margin-top: -1px;
+  border: 1px solid var(--border-divider);
+  border-top-color: var(--border-grid);
+}
+[data-slot="pagination"] button:disabled {
+  border: 1px solid #ffffff0a;
+}
+/* round 4: profile actions, compact header, heatmap fit */

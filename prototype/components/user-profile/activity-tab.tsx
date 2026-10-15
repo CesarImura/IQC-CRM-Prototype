@@ -83,9 +83,9 @@ function Engagement() {
           ))}
         </div>
         <div className="flex flex-col gap-6 px-6 pt-5 pb-5">
-          <div className="overflow-x-auto">
+          <div>
             <div
-              className="grid w-max grid-cols-[29px_repeat(52,21px)] grid-rows-[auto_repeat(7,21px)] gap-x-[5px] gap-y-[5px]"
+              className="grid w-full grid-cols-[29px_repeat(52,minmax(0,1fr))] gap-[4px]"
               role="img"
               aria-label="Active days over the last 12 months"
             >
@@ -105,7 +105,7 @@ function Engagement() {
               ))}
               {weeks.flatMap((week, w) =>
                 week.map((level, d) => (
-                  <span key={`${w}-${d}`} className="rounded-[2.27px]" style={{ gridColumnStart: w + 2, gridRowStart: d + 2, ...dayStyle(level) }} />
+                  <span key={`${w}-${d}`} className="aspect-square rounded-[2px]" style={{ gridColumnStart: w + 2, gridRowStart: d + 2, ...dayStyle(level) }} />
                 ))
               )}
             </div>
