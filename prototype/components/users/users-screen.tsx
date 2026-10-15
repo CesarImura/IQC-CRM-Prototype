@@ -2,9 +2,9 @@
 
 import * as React from "react"
 import { useRouter } from "next/navigation"
-import { Add, Calendar, CloseOutline, List, Time, User as UserIcon } from "@carbon/icons-react"
+import { Add, CloseOutline, List, Time, User as UserIcon } from "@carbon/icons-react"
 
-import { ExportMenu, TimeFilter } from "@/components/dropdown"
+import { ExportMenu } from "@/components/dropdown"
 import { downloadCsv, downloadExcel } from "@/lib/export"
 import { TODAY, type User } from "@/lib/users/data"
 import { emptyFilters, getUserStats, queryUsers, type UsersFilters, type UsersSort, type UsersTab } from "@/lib/users/query"
@@ -17,19 +17,11 @@ import { Tabs, TabsLineList, TabsLineTrigger } from "@/registry/iq/ui/tabs"
 import { toast } from "@/registry/iq/ui/toast"
 import { getUserColumns, statusMeta, type RowAction } from "./columns"
 import { AddUserModal, BanUserModal } from "./user-modals"
-import { UsersResultsBar, UsersToolbar } from "./users-toolbar"
+import { registeredOptions, UsersResultsBar, UsersToolbar } from "./users-toolbar"
 
 const PAGE_SIZE = 25
-const PERIODS = [
-  { value: "all", label: "All time" },
-  { value: "1", label: "Last 24 hours" },
-  { value: "7", label: "Last 7 days" },
-  { value: "30", label: "Last month" },
-  { value: "90", label: "Last quarter" },
-  { value: "365", label: "Last year" },
-]
-const PERIOD_DAYS: Record<string, number | undefined> = { "1": 1, "7": 7, "30": 30, "90": 90, "365": 365 }
 const fmt = (n: number) => n.toLocaleString("en-US")
+const periodLabel = (v: string) => registeredOptions.find((o) => o.value === v)?.label.replace("Last ", "last ") ?? v
 
 type Overrides = { added: User[]; patched: Map<string, Partial<User>> }
 type Selection = NonNullable<DataTableProps<User>["rowSelection"]>
@@ -38,7 +30,6 @@ export function UsersScreen() {
   const router = useRouter()
   const [tab, setTab] = React.useState<UsersTab>("all")
   const [filters, setFiltersState] = React.useState<UsersFilters>(emptyFilters)
-  const [period, setPeriod] = React.useState("all")
   const [sorting, setSorting] = React.useState<NonNullable<DataTableProps<User>["sorting"]>>([])
   const [page, setPage] = React.useState({ pageIndex: 0, pageSize: PAGE_SIZE })
   const [selection, setSelection] = React.useState<Selection>({})
@@ -56,7 +47,7 @@ export function UsersScreen() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [tab, deferredFilters, sorting, page, overrides]
   )
-  const stats = React.useMemo(() => getUserStats(), [])
+  const stats = React.useMemo(() => getUserStats(filters.registered), [filters.registered])
 
   const resetPaging = () => {
     setPage((p) => ({ ...p, pageIndex: 0 }))
@@ -167,18 +158,6 @@ export function UsersScreen() {
         title="Users"
         actions={
           <div className="flex items-center gap-2">
-            <TimeFilter
-              label="Period"
-              icon={<Calendar />}
-              align="end"
-              options={PERIODS}
-              value={period}
-              onValueChange={(v) => {
-                setPeriod(v)
-                const days = PERIOD_DAYS[v]
-                setFilters({ ...filters, period: days ? { from: new Date(TODAY.getTime() - days * 86_400_000), to: TODAY } : { from: null, to: null } })
-              }}
-            />
             <Button size="sm" onClick={() => setAddOpen(true)}>
               Add User
               <Add />
@@ -192,14 +171,23 @@ export function UsersScreen() {
         aria-label="Key numbers"
         className="grid grid-cols-2 [&>*]:min-w-0 max-lg:[&>*:nth-child(even)]:-ml-px max-lg:[&>*:nth-child(n+3)]:-mt-px lg:flex lg:[&>*]:h-[140px] lg:[&>*]:flex-1 lg:[&>*:not(:first-child)]:-ml-px"
       >
-        <StatCard title="Users" value={fmt(stats.total)} caption={`+${fmt(stats.new7)} in the last 7 days`} />
-        <StatCard title="New · 30 days" value={fmt(stats.new30)} valueTone="positive" caption={`Registered · ${stats.new30BoughtPct}% bought a challenge`} />
+        {/* All time = the Figma numbers; a Registered period turns every card into that sign-up cohort. */}
+        <StatCard
+          title={stats.period === "any" ? "Users" : `Users · ${periodLabel(stats.period)}`}
+          value={fmt(stats.total)}
+          caption={stats.period === "any" ? `+${fmt(stats.new7)} in the last 7 days` : `${((stats.total / stats.everyone) * 100).toFixed(1)}% of ${fmt(stats.everyone)} users`}
+        />
+        {stats.period === "any" ? (
+          <StatCard title="New · 30 days" value={fmt(stats.new30)} valueTone="positive" caption={`Registered · ${stats.new30BoughtPct}% bought a challenge`} />
+        ) : (
+          <StatCard title="Bought a challenge" value={fmt(stats.bought)} valueTone="positive" caption={`${stats.boughtPct}% of the users in this period`} />
+        )}
         <StatCard title="KYC verified" value={`${stats.verifiedPct.toFixed(1)}%`} caption={`${fmt(stats.pending)} waiting for review`} />
         <StatCard
           title="Banned"
           value={fmt(stats.banned)}
           valueTone="negative"
-          caption={`${stats.bannedPct.toFixed(1)}% · ${stats.bannedThisMonth} this month`}
+          caption={stats.period === "any" ? `${stats.bannedPct.toFixed(1)}% · ${stats.bannedThisMonth} this month` : `${stats.bannedPct.toFixed(1)}% of the users in this period`}
         />
       </section>
 
@@ -299,7 +287,7 @@ export function UsersScreen() {
           title: "No users match",
           description: "Try another search or remove a filter.",
           action: (
-            <Button variant="secondary" size="sm" onClick={() => { setFilters(emptyFilters); setPeriod("all") }}>
+            <Button variant="secondary" size="sm" onClick={() => setFilters(emptyFilters)}>
               Clear filters
             </Button>
           ),

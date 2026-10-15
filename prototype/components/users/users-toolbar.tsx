@@ -42,12 +42,14 @@ const statusOptions = [
   { value: "any", label: "Any status" },
   ...Object.entries(statusMeta).map(([value, m]) => ({ value, label: m.label })),
 ]
-const registeredOptions: { value: RegisteredFilter; label: string }[] = [
-  { value: "any", label: "Any time" },
+/** The one time filter of the Users page (it used to sit in the page header too): table and KPI cards follow it. */
+export const registeredOptions: { value: RegisteredFilter; label: string }[] = [
+  { value: "any", label: "All time" },
+  { value: "24h", label: "Last 24 hours" },
   { value: "7d", label: "Last 7 days" },
-  { value: "30d", label: "Last 30 days" },
-  { value: "90d", label: "Last 90 days" },
-  { value: "12m", label: "Last 12 months" },
+  { value: "30d", label: "Last month" },
+  { value: "90d", label: "Last quarter" },
+  { value: "12m", label: "Last year" },
 ]
 const roleOptions = Object.entries(roleMeta).map(([value, m]) => ({ value: value as Role, label: m.label }))
 const utmOptions = Object.entries(utmLabels).map(([value, label]) => ({ value: value as UtmSource | "none", label }))

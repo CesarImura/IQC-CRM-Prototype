@@ -5,7 +5,7 @@ import { TODAY, getAllUsers, type AccountType, type Role, type User, type UserSt
 export type UsersTab = "all" | "needs_action" | "banned"
 export type SearchField = "all" | "name" | "email" | "username" | "id"
 export type AccountsFilter = "any" | AccountType | "breached" | "has_accounts" | "no_accounts"
-export type RegisteredFilter = "any" | "7d" | "30d" | "90d" | "12m"
+export type RegisteredFilter = "any" | "24h" | "7d" | "30d" | "90d" | "12m"
 export type AffiliateFilter = "any" | "with" | "without"
 
 export type UsersFilters = {
@@ -46,7 +46,7 @@ export type UsersQuery = {
 }
 
 const DAY = 86_400_000
-const registeredDays: Record<Exclude<RegisteredFilter, "any">, number> = { "7d": 7, "30d": 30, "90d": 90, "12m": 365 }
+const registeredDays: Record<Exclude<RegisteredFilter, "any">, number> = { "24h": 1, "7d": 7, "30d": 30, "90d": 90, "12m": 365 }
 const dateKey = (d: Date) => d.toISOString().slice(0, 10)
 
 function matchesTab(u: User, tab: UsersTab) {
@@ -144,10 +144,13 @@ export function queryUsers(query: UsersQuery, overrides: { added: User[]; patche
   return { rows: matching.slice(start, start + query.pageSize), total: matching.length, tabCounts }
 }
 
-/** Headline numbers for the KPI strip (whole dataset, like the Figma screen). */
-export function getUserStats() {
-  const all = getAllUsers()
+/** Headline numbers for the KPI strip. "any" = the whole dataset (Figma screen); a period = the users who registered
+ *  in it, so the cards move with the Registered filter of the toolbar. */
+export function getUserStats(registered: RegisteredFilter = "any") {
+  const everyone = getAllUsers()
   const since = (days: number) => dateKey(new Date(TODAY.getTime() - days * DAY))
+  const from = registered === "any" ? null : since(registeredDays[registered])
+  const all = from ? everyone.filter((u) => u.registered > from) : everyone
   const d7 = since(7)
   const d30 = since(30)
   let new7 = 0
@@ -156,7 +159,11 @@ export function getUserStats() {
   let verified = 0
   let pending = 0
   let banned = 0
+  let bought = 0
+  let bannedRecent = 0
   for (const u of all) {
+    if (u.accountTypes.includes("challenge")) bought++
+    if (u.status === "banned" && u.registered > d30) bannedRecent++
     if (u.registered > d7) new7++
     if (u.registered > d30) {
       new30++
@@ -166,15 +173,20 @@ export function getUserStats() {
     if (u.verification === "pending") pending++
     if (u.status === "banned") banned++
   }
+  const n = Math.max(all.length, 1)
   return {
+    period: registered,
+    everyone: everyone.length,
     total: all.length,
+    bought,
+    boughtPct: Math.round((bought / n) * 100),
     new7,
     new30,
     new30BoughtPct: new30 ? Math.round((new30Bought / new30) * 100) : 0,
-    verifiedPct: (verified / all.length) * 100,
+    verifiedPct: (verified / n) * 100,
     pending,
     banned,
-    bannedPct: (banned / all.length) * 100,
-    bannedThisMonth: 12,
+    bannedPct: (banned / n) * 100,
+    bannedThisMonth: bannedRecent,
   }
 }
