@@ -245,7 +245,9 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         </div>
 
         <div ref={scrollerRef} data-app-scroller className="relative min-w-0 flex-1 overflow-x-hidden overflow-y-auto">
-          {children}
+          <div data-scroll-content className="flex min-h-full flex-col [&>[data-page]]:flex-[1_0_auto]">
+            {children}
+          </div>
         </div>
         <ScrollFX scroller={scrollerRef} />
       </div>

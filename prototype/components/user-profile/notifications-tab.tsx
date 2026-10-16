@@ -1,12 +1,12 @@
 "use client"
 
 import * as React from "react"
-import { OverflowMenuVertical, Renew } from "@carbon/icons-react"
+import { Copy, OverflowMenuVertical, Renew, View } from "@carbon/icons-react"
 
 import { notifications, type Notice } from "@/lib/users/profile"
 import { Badge, type BadgeColor } from "@/registry/iq/ui/badge"
 import { Button } from "@/registry/iq/ui/button"
-import { Dropdown } from "@/components/dropdown"
+import { ActionMenu, Dropdown } from "@/components/dropdown"
 import { createDataTableColumnHelper } from "@/registry/iq/ui/data-table"
 import { DataTable } from "@/components/data-table"
 import { MobileToolbar } from "@/components/mobile-toolbar"
@@ -55,18 +55,18 @@ const columns = col.columns([
     header: () => <span className="sr-only">Actions</span>,
     cell: ({ row }) => (
       <div className="flex justify-center" onClick={(e) => e.stopPropagation()}>
-        <Dropdown
+        <ActionMenu
           label={`Actions for ${row.original.id}`}
           iconOnly={<OverflowMenuVertical />}
           align="end"
-          search={false}
-          value={null}
-          options={[
-            { value: "view", label: "View content" },
-            { value: "resend", label: "Resend notification" },
-            { value: "copy", label: "Copy reference" },
+          sections={[
+            [
+              { value: "view", label: "View content", icon: <View /> },
+              { value: "resend", label: "Resend notification", icon: <Renew /> },
+              { value: "copy", label: "Copy reference", icon: <Copy /> },
+            ],
           ]}
-          onValueChange={(v) => {
+          onSelect={(v) => {
             if (v === "copy") {
               void navigator.clipboard?.writeText(row.original.id)
               toast.success("Reference copied", { description: row.original.id })

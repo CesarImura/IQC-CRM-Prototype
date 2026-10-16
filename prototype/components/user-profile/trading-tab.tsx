@@ -12,6 +12,7 @@ import { PartnerMark } from "@/registry/iq/ui/partner-logo"
 import { StatusDot } from "@/registry/iq/ui/status-dot"
 import { Tabs, TabsLineList, TabsLineTrigger, TabsPillList, TabsPillTrigger } from "@/registry/iq/ui/tabs"
 import { toast } from "@/registry/iq/ui/toast"
+import { ToolbarDivider } from "@/registry/iq/ui/toolbar"
 import { Card, LimitBar, Muted, Section, Stat, TypeBadge } from "./shared"
 
 const notYet = (what: string) => toast.info(`${what} isn’t in this prototype yet`)
@@ -52,20 +53,22 @@ export function TradingTab({ onNewAccount }: { onNewAccount: () => void }) {
 
       <Section
         title="Trading accounts"
+        swipe
         actions={
           <>
+            <Button variant="secondary" size="sm" onClick={() => notYet("Risk logs")}>
+              Risk logs
+            </Button>
+            <Button size="sm" className="max-lg:-order-1" onClick={onNewAccount}>
+              New account
+            </Button>
+            <ToolbarDivider />
             <Tabs defaultValue="cards">
               <TabsPillList size="sm" aria-label="View">
                 <TabsPillTrigger value="cards" icon={<Grid />} aria-label="Cards" />
                 <TabsPillTrigger value="table" icon={<List />} aria-label="Table" disabled />
               </TabsPillList>
             </Tabs>
-            <Button variant="secondary" size="sm" onClick={() => notYet("Risk logs")}>
-              Risk logs
-            </Button>
-            <Button size="sm" onClick={onNewAccount}>
-              New account
-            </Button>
           </>
         }
       >

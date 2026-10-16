@@ -805,8 +805,7 @@ input, textarea, select, [contenteditable]:not([contenteditable="false"]) { care
 }
 [data-reveal] {
   opacity: 0;
-  filter: blur(8px);
-  transform: translateY(28px);
+  transform: translateY(24px);
 }
 @media (prefers-reduced-motion: reduce) {
   [data-reveal] {
@@ -846,4 +845,15 @@ input, textarea, select, [contenteditable]:not([contenteditable="false"]) { care
     height: auto;
     padding-block: 12px;
   }
+}
+/* r16 · Every table except the flush Users list: the side strokes live on the scroll container (one stroke per side,
+   always drawn while columns scroll sideways); the outer cells' own edges are hidden so it never doubles. */
+[data-slot="data-table"]:not([data-page="flush"] *) [data-slot="table-container"] {
+  border-inline: 1px solid var(--border-divider);
+}
+[data-slot="data-table"]:not([data-page="flush"] *) :is(th, td):first-child {
+  border-left-color: transparent;
+}
+[data-slot="data-table"]:not([data-page="flush"] *) :is(th, td):last-child {
+  border-right-color: transparent;
 }
