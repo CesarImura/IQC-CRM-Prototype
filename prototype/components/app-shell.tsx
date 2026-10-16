@@ -179,7 +179,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             drawerOpen ? "max-lg:shadow-(--shadow-drawer)" : "max-lg:-translate-x-full"
           )}
         >
-        <div className="flex h-(--top-menu-height) shrink-0 items-center justify-between border-b border-(--nav-border) p-2 lg:hidden">
+        <div className="flex h-(--top-menu-height) shrink-0 items-center justify-between border-r border-b border-(--nav-border) p-2 lg:hidden">
           <BrandMark />
           <Button type="button" variant="secondary" size="icon-sm" aria-label="Close menu" className="border-white/16 bg-transparent" onClick={() => setDrawerOpen(false)}>
             <Close />
