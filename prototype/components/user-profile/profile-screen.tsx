@@ -125,8 +125,15 @@ export function ProfileScreen({ user }: { user: User }) {
       </div>
     </div>
     <div data-page className="mx-auto flex w-full max-w-[1544px] flex-col gap-5 px-4 pt-6 pb-10 lg:px-14 lg:pt-10 lg:pb-14">
-      {/* Figma Profile Header · Expanded (3165:86666): no back link, 40px top, actions centred on the name block. */}
+      {/* Figma Profile Header · Expanded (3165:86666): 40px top, actions centred on the name block. Back link is desktop only (mobile has the top bar). */}
       <header className="flex flex-col">
+        <Link
+          href="/customers/users"
+          className="mb-4 hidden w-fit items-center gap-2 rounded-[2px] text-sm font-medium text-white/70 outline-none hover:text-white focus-visible:shadow-[0_0_0_var(--focus-spread)_var(--focus-ring)] lg:flex"
+        >
+          <ArrowLeft size={16} />
+          Users
+        </Link>
         <div className="flex flex-wrap items-center justify-between gap-4">
           <div className="flex min-w-0 flex-col">
             <h1 className="truncate text-2xl leading-[1.5] font-medium text-white/80">{user.name}</h1>
