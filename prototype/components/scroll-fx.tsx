@@ -7,7 +7,7 @@ import Lenis from "lenis"
 /**
  * Animated scroll (reference: getartcraft.com/apps, Davi 16 Oct):
  * 1. Lenis smooth wheel scrolling on the app's content scroller (touch stays native).
- * 2. Reveal: every `[data-reveal]` block (hidden by CSS) fades in and rises 24px, staggered, once; small blocks also unblur.
+ * 2. Reveal: every `[data-reveal]` block (hidden by CSS) fades in and rises 24px, staggered, once.
  * Nested scrollers (sheets, Staff logs, tables) keep their own native scroll.
  */
 export function ScrollFX({ scroller }: { scroller: React.RefObject<HTMLElement | null> }) {
@@ -35,8 +35,8 @@ export function ScrollFX({ scroller }: { scroller: React.RefObject<HTMLElement |
         })
 
     // Web Animations instead of attributes: the blocks may still be hydrating, and React must not see the DOM change.
-    // Cost (Davi 16 Oct): opacity + transform only run on the compositor; blur repaints the block every frame, so it
-    // is kept for small blocks (cards). What is already on screen when the page opens shows at once, no animation.
+    // Cost (Davi 16–17 Oct): opacity + transform only, which run on the compositor; no blur anywhere (it repaints the
+    // block every frame). What is already on screen when the page opens shows at once, no animation.
     const shown = new WeakSet<Element>()
     const bootUntil = performance.now() + 700
     const io = new IntersectionObserver(
@@ -49,11 +49,10 @@ export function ScrollFX({ scroller }: { scroller: React.RefObject<HTMLElement |
           .forEach((el, i) => {
             shown.add(el)
             io.unobserve(el)
-            const blur = el.offsetHeight < 320
             el.animate(
               [
-                { opacity: 0, transform: "translateY(24px)", ...(blur && { filter: "blur(6px)" }) },
-                { opacity: 1, transform: "none", ...(blur && { filter: "blur(0px)" }) },
+                { opacity: 0, transform: "translateY(24px)" },
+                { opacity: 1, transform: "none" },
               ],
               instant ? { duration: 0, fill: "forwards" } : { duration: 600, delay: Math.min(i, 5) * 60, easing: "cubic-bezier(0.16, 1, 0.3, 1)", fill: "forwards" }
             )
