@@ -44,13 +44,13 @@ export function ActionMenu({
         <Popover.Content align={align} sideOffset={8} className="z-50 outline-none" onClick={(e) => e.stopPropagation()}>
           <OptionPanel aria-label={label} className="w-max">
             <OptionPanelList className="max-h-none">
-              <div className={columns ? "flex" : "flex flex-col"}>
+              <div className={columns ? "flex max-lg:flex-col" : "flex flex-col"}>
                 {sections.map((items, i) => (
                   <div
                     key={i}
                     className={
                       columns
-                        ? "flex min-w-[208px] flex-col gap-(--option-item-gap) [&:not(:first-child)]:ml-(--option-panel-padding) [&:not(:first-child)]:border-l [&:not(:first-child)]:border-(--option-panel-border) [&:not(:first-child)]:pl-(--option-panel-padding)"
+                        ? "flex min-w-[208px] flex-col gap-(--option-item-gap) [&:not(:first-child)]:border-(--option-panel-border) lg:[&:not(:first-child)]:ml-(--option-panel-padding) lg:[&:not(:first-child)]:border-l lg:[&:not(:first-child)]:pl-(--option-panel-padding) max-lg:[&:not(:first-child)]:mt-(--option-panel-padding) max-lg:[&:not(:first-child)]:border-t max-lg:[&:not(:first-child)]:pt-(--option-panel-padding)"
                         : "flex flex-col gap-(--option-item-gap) [&:not(:first-child)]:mt-(--option-panel-padding) [&:not(:first-child)]:border-t [&:not(:first-child)]:border-(--option-panel-border) [&:not(:first-child)]:pt-(--option-panel-padding)"
                     }
                   >

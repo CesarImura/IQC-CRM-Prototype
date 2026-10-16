@@ -3,7 +3,7 @@
 import * as React from "react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { Menu, Notification, Settings } from "@carbon/icons-react"
+import { Close, Menu, Notification, Search, Settings } from "@carbon/icons-react"
 
 import { allSections, findLink, findSection, navGroups } from "@/lib/nav"
 import { cn } from "@/lib/utils"
@@ -42,10 +42,12 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   // Below lg the same Side Menu + Sub Menu slide in as a drawer from the ☰ button (Figma: Nav Drawer / Mobile);
   // any navigation closes it.
   const [drawerOpen, setDrawerOpen] = React.useState(false)
+  const [searchOpen, setSearchOpen] = React.useState(false)
   const [drawerPath, setDrawerPath] = React.useState(pathname)
   if (drawerPath !== pathname) {
     setDrawerPath(pathname)
     setDrawerOpen(false)
+    setSearchOpen(false)
   }
   React.useEffect(() => {
     if (!drawerOpen) return
@@ -72,9 +74,10 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   return (
     <div className="flex h-dvh flex-col overflow-hidden">
       <TopMenu
+        className="relative"
         brand={
           <>
-            <Button variant="secondary" size="icon-sm" className="lg:hidden" aria-label="Open menu" aria-expanded={drawerOpen} onClick={() => setDrawerOpen(true)}>
+            <Button variant="ghost" size="icon-sm" className="lg:hidden" aria-label="Open menu" aria-expanded={drawerOpen} onClick={() => setDrawerOpen(true)}>
               <Menu />
             </Button>
             <BrandMark />
@@ -121,11 +124,27 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         }
         actions={
           <>
-            <div className="w-60 max-lg:hidden">
-              <SearchBar placeholder="Search Users, orders, affiliates..." aria-label="Search everything" value={search} onValueChange={setSearch} />
+            {/* Desktop: inline. Phone: the lupa opens the same search bar as a row under the top bar. */}
+            <div
+              className={cn(
+                "w-60",
+                searchOpen
+                  ? "max-lg:absolute max-lg:inset-x-0 max-lg:top-full max-lg:z-40 max-lg:flex max-lg:w-auto max-lg:items-center max-lg:gap-2 max-lg:border-b max-lg:border-(--nav-border) max-lg:bg-(--nav-surface) max-lg:p-2 max-lg:[animation:popover-in_200ms_cubic-bezier(0.16,1,0.3,1)]"
+                  : "max-lg:hidden"
+              )}
+            >
+              <div className="min-w-0 flex-1">
+                <SearchBar placeholder="Search Users, orders, affiliates..." aria-label="Search everything" value={search} onValueChange={setSearch} />
+              </div>
+              <Button variant="ghost" size="sm" className="lg:hidden" onClick={() => setSearchOpen(false)}>
+                Cancel
+              </Button>
             </div>
+            <Button variant="ghost" size="icon-sm" className="lg:hidden" aria-label="Search" aria-expanded={searchOpen} onClick={() => setSearchOpen((o) => !o)}>
+              <Search />
+            </Button>
             <Tooltip content="Notifications">
-              <Button variant="secondary" size="icon-sm" aria-label="Notifications">
+              <Button variant="secondary" size="icon-sm" aria-label="Notifications" className="max-lg:border-transparent max-lg:bg-transparent">
                 <Notification />
               </Button>
             </Tooltip>
@@ -154,10 +173,17 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           data-shell-nav
           className={cn(
             "flex lg:contents",
-            "max-lg:fixed max-lg:inset-y-0 max-lg:left-0 max-lg:z-50 max-lg:[--nav-width:296px] max-lg:transition-[translate,box-shadow] max-lg:duration-300 max-lg:ease-[cubic-bezier(0.16,1,0.3,1)]",
+            "max-lg:fixed max-lg:inset-y-0 max-lg:left-0 max-lg:z-50 max-lg:w-[min(350px,calc(100vw-40px))] max-lg:flex-col max-lg:bg-(--nav-surface) max-lg:[--nav-width:calc(100%-56px)] max-lg:transition-[translate,box-shadow] max-lg:duration-300 max-lg:ease-[cubic-bezier(0.16,1,0.3,1)]",
             drawerOpen ? "max-lg:shadow-(--shadow-drawer)" : "max-lg:-translate-x-full"
           )}
         >
+        <div className="flex h-(--top-menu-height) shrink-0 items-center justify-between border-b border-(--nav-border) p-2 lg:hidden">
+          <BrandMark />
+          <Button variant="ghost" size="icon-sm" aria-label="Close menu" onClick={() => setDrawerOpen(false)}>
+            <Close />
+          </Button>
+        </div>
+        <div className="contents max-lg:flex max-lg:min-h-0 max-lg:flex-1">
         {/* Collapsed 56px rail; hovering (or tabbing into) it expands it to 320px over the Sub Menu. */}
         <div
           className="relative z-30 w-14 shrink-0"
@@ -213,6 +239,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             </SubMenuGroup>
           ))}
         </SubMenu>
+        </div>
         </div>
 
                 <div className="relative min-w-0 flex-1 overflow-x-hidden overflow-y-auto">{children}</div>

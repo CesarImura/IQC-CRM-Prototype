@@ -43,12 +43,12 @@ const actionLabel = (v: string) => ACTION_SECTIONS.flat().find((a) => a.value ==
 
 function ProfileActions({ user, compact = false, onNewAccount }: { user: User; compact?: boolean; onNewAccount: () => void }) {
   return (
-    <div className="flex shrink-0 items-center gap-2">
+    <div className={cn("flex shrink-0 items-center gap-2", !compact && "max-lg:w-full max-lg:flex-row-reverse")}>
       <ActionMenu label="Actions" columns sections={ACTION_SECTIONS} onSelect={(v) => (v === "new-account" ? onNewAccount() : toast.info(`${actionLabel(v)} isn’t in this prototype yet`))} />
       <Button variant="secondary" size="sm" onClick={() => toast.info("Edit user isn’t in this prototype yet")}>
-        {compact ? "Edit user" : "Edit User"}
+        Edit user
       </Button>
-      <Button size="sm" onClick={() => toast.success("Verification sent", { description: `Email and SMS sent to ${user.email}` })}>
+      <Button size="sm" className="max-lg:flex-1" onClick={() => toast.success("Verification sent", { description: `Email and SMS sent to ${user.email}` })}>
         Verify contact
       </Button>
     </div>
