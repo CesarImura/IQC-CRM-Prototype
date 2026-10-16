@@ -17,6 +17,7 @@ import { Tabs, TabsLineList, TabsLineTrigger } from "@/registry/iq/ui/tabs"
 import { toast } from "@/registry/iq/ui/toast"
 import { getUserColumns, statusMeta, type RowAction } from "./columns"
 import { AddUserModal, BanUserModal } from "./user-modals"
+import { UsersMobile } from "./users-mobile"
 import { registeredOptions, UsersResultsBar, UsersToolbar } from "./users-toolbar"
 
 const PAGE_SIZE = 25
@@ -154,6 +155,29 @@ export function UsersScreen() {
         }
       }}
     >
+      {/* Phone: its own layout from the Figma mobile frames (same state as desktop). */}
+      <UsersMobile
+        tab={tab}
+        onTabChange={(v) => {
+          setTab(v)
+          resetPaging()
+        }}
+        filters={filters}
+        onFiltersChange={setFilters}
+        countFor={countFor}
+        sorting={sorting}
+        onSortingChange={(s) => {
+          setSorting(s)
+          resetPaging()
+        }}
+        page={page}
+        onPageChange={setPage}
+        result={result}
+        onAction={onAction}
+        onAddUser={() => setAddOpen(true)}
+      />
+
+      <div className="contents max-lg:hidden">
       <PageHeader
         title="Users"
         actions={
@@ -304,6 +328,7 @@ export function UsersScreen() {
           showPageSize: true,
         }}
       />
+      </div>
 
       <AddUserModal
         open={addOpen}

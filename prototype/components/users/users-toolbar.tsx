@@ -28,7 +28,7 @@ const searchScopes: { value: SearchField; label: string }[] = [
 ]
 
 // Option lists follow the hidden panels in the Figma frame (Accounts · panel, Status · panel, …).
-const accountOptions: { value: AccountsFilter; label: string; group?: string }[] = [
+export const accountOptions: { value: AccountsFilter; label: string; group?: string }[] = [
   { value: "any", label: "Any account" },
   { value: "challenge", label: "Challenge", group: "Account type" },
   { value: "funding", label: "Funding", group: "Account type" },
@@ -51,9 +51,9 @@ export const registeredOptions: { value: RegisteredFilter; label: string }[] = [
   { value: "90d", label: "Last quarter" },
   { value: "12m", label: "Last year" },
 ]
-const roleOptions = Object.entries(roleMeta).map(([value, m]) => ({ value: value as Role, label: m.label }))
-const utmOptions = Object.entries(utmLabels).map(([value, label]) => ({ value: value as UtmSource | "none", label }))
-const affiliateOptions: { value: AffiliateFilter; label: string }[] = [
+export const roleOptions = Object.entries(roleMeta).map(([value, m]) => ({ value: value as Role, label: m.label }))
+export const utmOptions = Object.entries(utmLabels).map(([value, label]) => ({ value: value as UtmSource | "none", label }))
+export const affiliateOptions: { value: AffiliateFilter; label: string }[] = [
   { value: "any", label: "Any" },
   { value: "with", label: "With affiliate" },
   { value: "without", label: "Without affiliate" },
@@ -211,6 +211,19 @@ function MoreFilters({ filters, onApply, countFor }: { filters: UsersFilters; on
 
 /** Applied filters as removable chips, plus the result count. Hidden while nothing is filtered. */
 export function UsersResultsBar({ filters, onFiltersChange, total }: { filters: UsersFilters; onFiltersChange: (f: UsersFilters) => void; total: number }) {
+  const chips = appliedChips(filters, onFiltersChange)
+  if (chips.length === 0) return null
+  return (
+    <FilterResultsBar count={`${total.toLocaleString("en-US")} users`} onClearAll={() => onFiltersChange(emptyFilters)} className="relative z-10 border-x border-b border-(--border-divider) bg-(--surface-raised)">
+      {chips.map((c) => (
+        <FilterChipApplied key={c.key} label={c.label} value={c.value} onRemove={c.clear} />
+      ))}
+    </FilterResultsBar>
+  )
+}
+
+/** One removable chip per applied filter, in toolbar order (desktop results bar and mobile chips row). */
+export function appliedChips(filters: UsersFilters, onFiltersChange: (f: UsersFilters) => void) {
   const reset = (patch: Partial<UsersFilters>) => onFiltersChange({ ...filters, ...patch })
   const chips: { key: string; label: string; value: string; clear: () => void }[] = []
 
@@ -238,12 +251,5 @@ export function UsersResultsBar({ filters, onFiltersChange, total }: { filters: 
     })
   if (filters.utm.length) chips.push({ key: "utm", label: "UTM", value: filters.utm.map((u) => utmLabels[u]).join(", "), clear: () => reset({ utm: [] }) })
 
-  if (chips.length === 0) return null
-  return (
-    <FilterResultsBar count={`${total.toLocaleString("en-US")} users`} onClearAll={() => onFiltersChange(emptyFilters)} className="relative z-10 border-x border-b border-(--border-divider) bg-(--surface-raised)">
-      {chips.map((c) => (
-        <FilterChipApplied key={c.key} label={c.label} value={c.value} onRemove={c.clear} />
-      ))}
-    </FilterResultsBar>
-  )
+  return chips
 }

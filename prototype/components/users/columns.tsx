@@ -43,7 +43,7 @@ export const utmLabels: Record<UtmSource | "none", string> = {
 
 export type RowAction = "view" | "edit" | "suspend" | "reactivate" | "ban" | "unban"
 
-const dateFormat = new Intl.DateTimeFormat("en-GB", { day: "2-digit", month: "short", year: "numeric", timeZone: "UTC" })
+export const dateFormat = new Intl.DateTimeFormat("en-GB", { day: "2-digit", month: "short", year: "numeric", timeZone: "UTC" })
 const shortId = (id: string) => `${id.slice(0, 8)}…${id.slice(-4)}`
 const Empty = () => <ValueText className="text-(color:--content-disabled)">—</ValueText>
 
@@ -120,7 +120,7 @@ export function getUserColumns(onAction: (user: User, action: RowAction) => void
   ])
 }
 
-function RowActions({ user, onAction }: { user: User; onAction: (user: User, action: RowAction) => void }) {
+export function RowActions({ user, onAction }: { user: User; onAction: (user: User, action: RowAction) => void }) {
   const options = [
     { value: "view", label: "View profile" },
     { value: "edit", label: "Edit user" },
@@ -140,4 +140,53 @@ function RowActions({ user, onAction }: { user: User; onAction: (user: User, act
       />
     </div>
   )
+}
+
+// Mobile table (Figma Smart filter · mobile, F1): User first, the other columns scroll sideways, ⋮ last and not pinned.
+export function getMobileUserColumns(onAction: (user: User, action: RowAction) => void) {
+  return col.columns([
+    col.accessor("name", {
+      header: "User",
+      size: 190,
+      cell: ({ row }) => (
+        <span className="flex min-w-0 flex-col">
+          <span className="truncate text-sm leading-5 text-(color:--content-default)">{row.original.name}</span>
+          <span className="truncate text-xs leading-4 text-(color:--content-muted)">{row.original.email}</span>
+        </span>
+      ),
+    }),
+    col.accessor("accounts", { header: "Accounts", size: 120, cell: (info) => <ValueNumber>{info.getValue()}</ValueNumber> }),
+    col.accessor("status", {
+      header: "Status",
+      size: 150,
+      cell: (info) => {
+        const meta = statusMeta[info.getValue()]
+        return <Badge color={meta.color}>{meta.label}</Badge>
+      },
+    }),
+    col.accessor("affiliate", {
+      header: "Affiliate",
+      size: 190,
+      cell: (info) => {
+        const affiliate = info.getValue()
+        return affiliate ? <Pill icon={<UserAvatar />}>{affiliate}</Pill> : <Empty />
+      },
+    }),
+    col.accessor("registered", { header: "Registered", size: 130, cell: (info) => <ValueText>{dateFormat.format(new Date(info.getValue()))}</ValueText> }),
+    col.accessor("role", {
+      header: "Roles",
+      size: 110,
+      cell: (info) => {
+        const meta = roleMeta[info.getValue()]
+        return <Badge color={meta.color}>{meta.label}</Badge>
+      },
+    }),
+    col.accessor("utm", { header: "UTM Source", size: 130, cell: (info) => (info.getValue() ? <ValueText>{utmLabels[info.getValue()!]}</ValueText> : <Empty />) }),
+    col.display({
+      id: "actions",
+      size: 64,
+      header: () => <span className="sr-only">Actions</span>,
+      cell: ({ row }) => <RowActions user={row.original} onAction={onAction} />,
+    }),
+  ])
 }
