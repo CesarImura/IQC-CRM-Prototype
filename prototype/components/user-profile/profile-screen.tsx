@@ -124,12 +124,12 @@ export function ProfileScreen({ user }: { user: User }) {
         </div>
       </div>
     </div>
-    <div data-page className="mx-auto flex w-full max-w-[1544px] flex-col gap-5 px-4 pt-6 pb-10 lg:px-14 lg:pt-10 lg:pb-14">
-      {/* Figma Profile Header · Expanded (3165:86666): 40px top, actions centred on the name block. Back link is desktop only (mobile has the top bar). */}
+    <div data-page className="mx-auto flex w-full max-w-[1544px] flex-col gap-5 px-4 pt-8 pb-10 lg:px-14 lg:pt-10 lg:pb-14">
+      {/* Figma Profile Header · Expanded (3165:86666): 40px top, actions centred on the name block. Mobile (3338:13713) keeps the same back link above the name. */}
       <header className="flex flex-col">
         <Link
           href="/customers/users"
-          className="mb-4 hidden w-fit items-center gap-2 rounded-[2px] text-sm font-medium text-white/70 outline-none hover:text-white focus-visible:shadow-[0_0_0_var(--focus-spread)_var(--focus-ring)] lg:flex"
+          className="mb-4 flex h-8 w-fit items-center gap-2 rounded-[2px] text-sm font-medium text-white/70 outline-none hover:text-white focus-visible:shadow-[0_0_0_var(--focus-spread)_var(--focus-ring)]"
         >
           <ArrowLeft size={16} />
           Users
@@ -138,7 +138,7 @@ export function ProfileScreen({ user }: { user: User }) {
           <div className="flex min-w-0 flex-col">
             <h1 className="truncate text-2xl leading-[1.5] font-medium text-white/80">{user.name}</h1>
             <span className="text-sm leading-normal text-white/50">{user.email}</span>
-            <div className="flex flex-wrap items-center gap-4 pt-2 pb-4 text-sm [&_[data-slot=status-dot]]:gap-2 [&_[data-slot=status-dot]]:text-sm [&_[data-slot=status-dot]]:font-medium [&_[data-slot=status-dot]]:text-white/50">
+            <div className="flex flex-wrap items-center gap-4 pt-2 pb-4 text-sm max-lg:gap-x-4 max-lg:gap-y-0.5 max-lg:pt-4 [&_[data-slot=status-dot]]:gap-2 [&_[data-slot=status-dot]]:text-sm [&_[data-slot=status-dot]]:font-medium [&_[data-slot=status-dot]]:text-white/50">
               <StatusDot tone={user.verification === "verified" ? "positive" : "warning"} className="">
                 {user.verification === "verified" ? "Verified" : "Not verified"}
               </StatusDot>
@@ -155,7 +155,7 @@ export function ProfileScreen({ user }: { user: User }) {
         </div>
       </header>
 
-      <Card aria-label="Key numbers" className="flex flex-wrap">
+      <Card aria-label="Key numbers" className="flex flex-wrap max-lg:hidden">
         {moneyProfile(user.id).header.map((k) => (
           <CompactStat key={k.title} title={k.title} value={k.value} caption={k.caption} tone={k.tone} />
         ))}
@@ -169,6 +169,14 @@ export function ProfileScreen({ user }: { user: User }) {
             </TabsLineTrigger>
           ))}
         </TabsLineList>
+        {/* Mobile (Figma KPI scroll): the key numbers sit under the tabs, in one row that scrolls sideways. */}
+        <div data-kpi-scroll className="scroll-no-arrows -mx-4 -mt-4 overflow-x-auto px-4 pb-3 lg:hidden">
+          <Card aria-label="Key numbers" className="flex w-max">
+            {moneyProfile(user.id).header.map((k) => (
+              <CompactStat key={k.title} title={k.title} value={k.value} caption={k.caption} tone={k.tone} />
+            ))}
+          </Card>
+        </div>
         <TabsContent value="overview">
           <OverviewTab user={user} />
         </TabsContent>

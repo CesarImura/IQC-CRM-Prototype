@@ -7,7 +7,8 @@ import { subscriptions, type Subscription } from "@/lib/users/profile"
 import { Badge } from "@/registry/iq/ui/badge"
 import { Button } from "@/registry/iq/ui/button"
 import { Dropdown } from "@/components/dropdown"
-import { createDataTableColumnHelper, DataTable } from "@/registry/iq/ui/data-table"
+import { createDataTableColumnHelper } from "@/registry/iq/ui/data-table"
+import { DataTable } from "@/components/data-table"
 import { SearchBar } from "@/registry/iq/ui/search-bar"
 import { StatusDot } from "@/registry/iq/ui/status-dot"
 import { Tabs, TabsPillList, TabsPillTrigger } from "@/registry/iq/ui/tabs"
@@ -49,6 +50,7 @@ export function SubscriptionsTab() {
   return (
     <Section
       title="Subscriptions"
+      swipe
       actions={
         <>
           {view === "cards" && (
@@ -77,7 +79,7 @@ export function SubscriptionsTab() {
             options={[{ value: "csv", label: `CSV · ${rows.length} subscriptions` }]}
             onValueChange={() => toast.success(`Exported ${rows.length} subscriptions`, { description: "CSV downloaded" })}
           />
-          <Button size="sm" onClick={() => notYet("Add subscription")}>
+          <Button size="sm" className="max-lg:-order-1" onClick={() => notYet("Add subscription")}>
             Add subscription
           </Button>
           <ToolbarDivider />

@@ -31,6 +31,7 @@ export function TradingTab({ onNewAccount }: { onNewAccount: () => void }) {
     <div className="flex flex-col gap-8">
       <Section
         title="Connected providers"
+        swipe
         actions={
           <>
             <Button variant="secondary" size="sm" onClick={() => notYet("New platform")}>

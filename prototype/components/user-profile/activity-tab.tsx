@@ -8,13 +8,17 @@ import { cn } from "@/lib/utils"
 import { Badge, DeltaBadge } from "@/registry/iq/ui/badge"
 import { Button } from "@/registry/iq/ui/button"
 import { Dropdown, TimeFilter } from "@/components/dropdown"
-import { createDataTableColumnHelper, DataTable } from "@/registry/iq/ui/data-table"
+import { createDataTableColumnHelper } from "@/registry/iq/ui/data-table"
+import { DataTable } from "@/components/data-table"
+import { MobileToolbar } from "@/components/mobile-toolbar"
 import { SearchBar } from "@/registry/iq/ui/search-bar"
 import { toast } from "@/registry/iq/ui/toast"
 import { Toolbar } from "@/registry/iq/ui/toolbar"
 import { ValueDate, ValueText } from "@/registry/iq/ui/value-slot"
 import { Card, CompactStat, Muted, PeriodPills, Section } from "./shared"
 
+const exportOptions = (count: number, what: string) => [{ value: "csv", label: `CSV · ${count} ${what}` }]
+const exported = (count: number, what: string) => () => toast.success(`Exported ${count} ${what}`, { description: "CSV downloaded" })
 const exportMenu = (count: number, what: string) => (
   <Dropdown
     label="Export"
@@ -35,7 +39,8 @@ export function ActivityTab() {
       <Engagement />
       <AccountLogs />
       <Timeline />
-      <div className="grid gap-4 xl:grid-cols-2">
+      {/* Stacked (below xl) they keep the 32px between sections; side by side, 16px. */}
+      <div className="grid gap-x-4 gap-y-8 xl:grid-cols-2">
         <Sessions />
         <StaffLogs />
       </div>
@@ -135,6 +140,7 @@ function Engagement() {
   return (
     <Section
       title="Engagement"
+      swipe
       actions={
         <>
           <Button variant="secondary" size="sm" onClick={() => document.getElementById("sessions")?.scrollIntoView({ behavior: "smooth" })}>
@@ -157,7 +163,8 @@ function Engagement() {
             <DayStrip days={visible} />
           )}
           <div className={cn("flex flex-wrap items-center justify-between gap-4", range !== "all" && "mt-3")}>
-            <div className="flex flex-wrap items-center gap-[14px] text-xs leading-4">
+            {/* Mobile keeps only the Less / More legend. */}
+            <div className="flex flex-wrap items-center gap-[14px] text-xs leading-4 max-lg:hidden">
               <span className="text-[12.5px] text-(color:--content-tertiary)">Active days by weekday</span>
               {byDay.map((d) => {
                 const top = d.days === maxDay
@@ -388,6 +395,8 @@ const logColumns = logCol.columns([
   }),
 ])
 
+const LOG_ACTION_OPTIONS = [{ value: "all", label: "All actions" }, ...["Partial flat", "Warning", "Hard breach", "Cleared"].map((a) => ({ value: a, label: a }))]
+
 function AccountLogs() {
   const [search, setSearch] = React.useState("")
   const [action, setAction] = React.useState("all")
@@ -401,7 +410,16 @@ function AccountLogs() {
         data={rows}
         pagination={{ showPageSize: true, pageSizeOptions: [10, 25, 50] }}
         toolbar={
-          <Toolbar surface={false} className="w-full"
+          <>
+          <div className="w-full lg:hidden">
+            <MobileToolbar
+              search={{ value: search, onChange: setSearch, placeholder: "Search account or reason", label: "Search account logs" }}
+              filters={[{ key: "action", label: "Action", value: action, onChange: setAction, options: LOG_ACTION_OPTIONS }]}
+              exportOptions={exportOptions(rows.length, "logs")}
+              onExport={exported(rows.length, "logs")}
+            />
+          </div>
+          <Toolbar surface={false} className="w-full max-lg:hidden"
             filters={
               <>
                 <div className="w-60 max-lg:w-full">
@@ -413,13 +431,14 @@ function AccountLogs() {
                   size="sm"
                   search={false}
                   value={action}
-                  options={[{ value: "all", label: "All actions" }, ...["Partial flat", "Warning", "Hard breach", "Cleared"].map((a) => ({ value: a, label: a }))]}
+                  options={LOG_ACTION_OPTIONS}
                   onValueChange={setAction}
                 />
               </>
             }
             actions={exportMenu(rows.length, "logs")}
           />
+          </>
         }
         emptyState={{ title: "No logs match", description: "Try another search or action." }}
       />
@@ -435,7 +454,7 @@ const evColumns = evCol.columns([
     header: "Event",
     size: 420,
     cell: ({ row }) => (
-      <div className="flex min-w-0 items-start gap-3">
+      <div data-two-line className="flex min-w-0 items-start gap-3">
         <span
           className={cn(
             "mt-1.5 size-1.5 shrink-0",
@@ -454,6 +473,19 @@ const evColumns = evCol.columns([
   evCol.accessor("date", { header: "When", size: 140, cell: ({ row }) => <ValueDate date={row.original.date} time={row.original.time} /> }),
 ])
 
+const ACTORS = [
+  { value: "all", label: "All actions" },
+  { value: "trader", label: "By the trader" },
+  { value: "system", label: "By the system" },
+  { value: "staff", label: "By staff" },
+]
+const PERIODS = [
+  { value: "all", label: "All time" },
+  { value: "30d", label: "Last 30 days" },
+  { value: "90d", label: "Last 90 days" },
+  { value: "12m", label: "Last 12 months" },
+]
+
 function Timeline() {
   const [kind, setKind] = React.useState("all")
   const [period, setPeriod] = React.useState("12m")
@@ -470,7 +502,19 @@ function Timeline() {
         data={rows}
         pagination={{ showPageSize: true, pageSizeOptions: [10, 25, 50] }}
         toolbar={
-          <Toolbar surface={false} className="w-full"
+          <>
+          <div className="w-full lg:hidden">
+            <MobileToolbar
+              search={{ value: search, onChange: setSearch, placeholder: "Search events", label: "Search events" }}
+              filters={[
+                { key: "actor", label: "Actor", value: kind, onChange: setKind, options: ACTORS },
+                { key: "period", label: "Period", value: period, onChange: setPeriod, options: PERIODS },
+              ]}
+              exportOptions={exportOptions(rows.length, "events")}
+              onExport={exported(rows.length, "events")}
+            />
+          </div>
+          <Toolbar surface={false} className="w-full max-lg:hidden"
             filters={
               <>
                 <div className="w-60 max-lg:w-full">
@@ -482,23 +526,13 @@ function Timeline() {
                   size="sm"
                   search={false}
                   value={kind}
-                  options={[
-                    { value: "all", label: "All actions" },
-                    { value: "trader", label: "By the trader" },
-                    { value: "system", label: "By the system" },
-                    { value: "staff", label: "By staff" },
-                  ]}
+                  options={ACTORS}
                   onValueChange={setKind}
                 />
                 <TimeFilter
                   label="Period"
                   icon={<Calendar />}
-                  options={[
-                    { value: "all", label: "All time" },
-                    { value: "30d", label: "Last 30 days" },
-                    { value: "90d", label: "Last 90 days" },
-                    { value: "12m", label: "Last 12 months" },
-                  ]}
+                  options={PERIODS}
                   value={period}
                   onValueChange={setPeriod}
                 />
@@ -506,6 +540,7 @@ function Timeline() {
             }
             actions={exportMenu(rows.length, "events")}
           />
+          </>
         }
         emptyState={{ title: "No events match", description: "Try another search or filter." }}
       />

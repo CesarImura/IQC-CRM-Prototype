@@ -1,10 +1,10 @@
 "use client"
 
-import { OverflowMenuVertical, UserAvatar } from "@carbon/icons-react"
+import { Edit, Misuse, OverflowMenuVertical, PauseOutline, PlayOutline, Undo, UserAvatar, View } from "@carbon/icons-react"
 
 import type { Role, User, UserStatus, UtmSource, Verification } from "@/lib/users/data"
 import { Badge, type BadgeColor } from "@/registry/iq/ui/badge"
-import { Dropdown } from "@/components/dropdown"
+import { ActionMenu, type ActionItem } from "@/components/dropdown"
 import { createDataTableColumnHelper } from "@/registry/iq/ui/data-table"
 import { Pill } from "@/registry/iq/ui/pill"
 import { StatusDot, type StatusTone } from "@/registry/iq/ui/status-dot"
@@ -121,22 +121,28 @@ export function getUserColumns(onAction: (user: User, action: RowAction) => void
 }
 
 export function RowActions({ user, onAction }: { user: User; onAction: (user: User, action: RowAction) => void }) {
-  const options = [
-    { value: "view", label: "View profile" },
-    { value: "edit", label: "Edit user" },
-    user.status === "suspended" ? { value: "reactivate", label: "Reactivate" } : { value: "suspend", label: "Suspend", tone: "warning" as const },
-    user.status === "banned" ? { value: "unban", label: "Lift ban" } : { value: "ban", label: "Ban user", tone: "danger" as const },
+  const sections: ActionItem[][] = [
+    [
+      { value: "view", label: "View profile", icon: <View /> },
+      { value: "edit", label: "Edit user", icon: <Edit /> },
+      user.status === "suspended"
+        ? { value: "reactivate", label: "Reactivate", icon: <PlayOutline /> }
+        : { value: "suspend", label: "Suspend", icon: <PauseOutline />, tone: "warning" },
+    ],
+    [
+      user.status === "banned"
+        ? { value: "unban", label: "Lift ban", icon: <Undo /> }
+        : { value: "ban", label: "Ban user", icon: <Misuse />, tone: "danger" },
+    ],
   ]
   return (
     <div className="flex justify-center" onClick={(e) => e.stopPropagation()}>
-      <Dropdown
+      <ActionMenu
         label={`Actions for ${user.name}`}
         iconOnly={<OverflowMenuVertical />}
         align="end"
-        search={false}
-        value={null}
-        options={options}
-        onValueChange={(value) => onAction(user, value as RowAction)}
+        sections={sections}
+        onSelect={(value) => onAction(user, value as RowAction)}
       />
     </div>
   )

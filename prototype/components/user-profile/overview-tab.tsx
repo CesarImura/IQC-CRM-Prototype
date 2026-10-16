@@ -26,7 +26,7 @@ export function OverviewTab({ user }: { user: User }) {
 
   return (
     <div className="flex flex-col gap-8">
-      <div className="grid gap-4 xl:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]">
+      <div className="grid gap-x-4 gap-y-8 xl:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]">
         <Section
           title="Firm cash flow"
           info="Money the firm collected from this trader (purchases, renewals) against what it paid out (payouts, refunds)."
@@ -50,7 +50,7 @@ export function OverviewTab({ user }: { user: User }) {
         </Section>
 
         <Section title="Lifetime activities">
-          <Card className="flex h-full flex-col px-5">
+          <Card className="flex h-full flex-col px-6">
             <div className="grid grid-cols-[minmax(0,1fr)_auto_auto] items-center gap-x-6 border-b border-(--border-grid) py-3 text-xs text-(color:--content-muted)">
               <span>Metric</span>
               <span className="text-right">Count</span>
@@ -59,7 +59,7 @@ export function OverviewTab({ user }: { user: User }) {
             {profile.lifetime.map((row) => (
               <div
                 key={row.metric}
-                className="grid min-h-[47px] flex-1 grid-cols-[minmax(0,1fr)_auto_auto] items-center gap-x-6 border-b border-(--border-grid) text-sm last:border-b-0"
+                className="grid min-h-[47px] flex-1 grid-cols-[minmax(0,1fr)_auto_auto] max-lg:min-h-14 max-lg:py-2 items-center gap-x-6 border-b border-(--border-grid) text-sm last:border-b-0"
               >
                 <span className="text-(color:--content-secondary)">{row.metric}</span>
                 <span className="min-w-6 text-right text-(color:--content-default)">{row.count ?? ""}</span>
@@ -73,7 +73,7 @@ export function OverviewTab({ user }: { user: User }) {
         </Section>
       </div>
 
-      <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_minmax(0,2fr)]">
+      <div className="grid gap-x-4 gap-y-8 xl:grid-cols-[minmax(0,1fr)_minmax(0,2fr)]">
         <Section title="Payment health" info="Charges and payment method of the trader’s active subscriptions.">
           <Card className="flex h-full flex-col">
             <dl className="flex flex-col px-6 pt-1">
@@ -120,7 +120,7 @@ export function OverviewTab({ user }: { user: User }) {
         <Section title="Identity & verification">
           <Card className="flex h-full flex-col">
             {/* Rows share the card's height (Figma: 7 rows spread over the panel), no empty band at the bottom. */}
-            <FieldGrid columns={2} className="flex-1 gap-x-5 px-6 py-2 [grid-auto-rows:1fr] [&>*]:!h-auto [&>*]:min-h-12">
+            <FieldGrid columns={2} className="flex-1 gap-x-5 px-6 py-2 [grid-auto-rows:1fr] [&>*]:!h-auto [&>*]:min-h-12 [&>*]:pl-0">
               <FieldGridRow label="ID" copyValue={user.id}>
                 {`${user.id.slice(0, 8)}…${user.id.slice(-8)}`}
               </FieldGridRow>

@@ -12,6 +12,7 @@ import { Button } from "@/registry/iq/ui/button"
 import { SearchBar } from "@/registry/iq/ui/search-bar"
 import { SideMenu, SideMenuDivider, SideMenuLink, SideMenuSection, SubMenu, SubMenuGroup, TopMenu } from "@/registry/iq/ui/navigation"
 import { Tooltip } from "@/registry/iq/ui/tooltip"
+import { ScrollFX } from "@/components/scroll-fx"
 
 function BrandMark() {
   return (
@@ -42,6 +43,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   // Below lg the same Side Menu + Sub Menu slide in as a drawer from the ☰ button (Figma: Nav Drawer / Mobile);
   // any navigation closes it.
   const [drawerOpen, setDrawerOpen] = React.useState(false)
+  const scrollerRef = React.useRef<HTMLDivElement>(null)
   const [searchOpen, setSearchOpen] = React.useState(false)
   const [drawerPath, setDrawerPath] = React.useState(pathname)
   if (drawerPath !== pathname) {
@@ -179,7 +181,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         >
         <div className="flex h-(--top-menu-height) shrink-0 items-center justify-between border-b border-(--nav-border) p-2 lg:hidden">
           <BrandMark />
-          <Button variant="ghost" size="icon-sm" aria-label="Close menu" onClick={() => setDrawerOpen(false)}>
+          <Button type="button" variant="secondary" size="icon-sm" aria-label="Close menu" className="border-white/16 bg-transparent" onClick={() => setDrawerOpen(false)}>
             <Close />
           </Button>
         </div>
@@ -242,7 +244,10 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         </div>
         </div>
 
-                <div className="relative min-w-0 flex-1 overflow-x-hidden overflow-y-auto">{children}</div>
+        <div ref={scrollerRef} data-app-scroller className="relative min-w-0 flex-1 overflow-x-hidden overflow-y-auto">
+          {children}
+        </div>
+        <ScrollFX scroller={scrollerRef} />
       </div>
     </div>
   )

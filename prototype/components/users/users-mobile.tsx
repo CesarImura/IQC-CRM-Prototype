@@ -10,6 +10,7 @@ import { useRouter } from "next/navigation"
 import { Add, ArrowsVertical, Calendar, ChevronRight, CloseOutline, Grid, List, Time } from "@carbon/icons-react"
 
 import { BottomSheet } from "@/components/bottom-sheet"
+import { MobilePagination } from "@/components/mobile-pagination"
 import { TimeFilter } from "@/components/dropdown"
 import { AFFILIATES, type User } from "@/lib/users/data"
 import { emptyFilters, type AccountsFilter, type RegisteredFilter, type UsersFilters, type UsersResult, type UsersTab } from "@/lib/users/query"
@@ -18,7 +19,6 @@ import { Button } from "@/registry/iq/ui/button"
 import { DataTable, type DataTableProps } from "@/registry/iq/ui/data-table"
 import { FilterButton, FilterChip, FilterChipApplied } from "@/registry/iq/ui/filter"
 import { OptionGroup, OptionItem, OptionPanel, OptionPanelList } from "@/registry/iq/ui/option-panel"
-import { Pagination } from "@/registry/iq/ui/pagination"
 import { SearchBar } from "@/registry/iq/ui/search-bar"
 import { Tabs, TabsLineList, TabsLineTrigger, TabsPillList, TabsPillTrigger } from "@/registry/iq/ui/tabs"
 import { dateFormat, getMobileUserColumns, roleMeta, RowActions, statusMeta, utmLabels, type RowAction } from "./columns"
@@ -78,7 +78,6 @@ export function UsersMobile(props: UsersMobileProps) {
   const columns = React.useMemo(() => getMobileUserColumns(onAction), [onAction])
   const chips = appliedChips({ ...filters, search: "" }, onFiltersChange)
   const sortKey = sortKeyOf(sorting)
-  const pageCount = Math.ceil(result.total / page.pageSize)
   const open = (u: User) => router.push(`/customers/users/${u.id}`)
 
   return (
@@ -170,14 +169,11 @@ export function UsersMobile(props: UsersMobileProps) {
               </Button>
             ),
           }}
-          pagination={{
-            state: page,
-            onChange: (updater) => onPageChange(typeof updater === "function" ? updater(page) : updater),
-            manual: { rowCount: result.total },
-            layout: "input",
-          }}
+          pagination={false}
         />
-      ) : (
+      ) : null}
+      {view === "table" && result.total > 0 && <MobilePagination pageIndex={page.pageIndex} pageSize={page.pageSize} total={result.total} onChange={onPageChange} />}
+      {view === "cards" && (
         <div className="flex flex-1 flex-col">
           <ul className="flex flex-col gap-4 px-4 pt-2 pb-4">
             {result.rows.map((u) => (
@@ -193,18 +189,14 @@ export function UsersMobile(props: UsersMobileProps) {
               </Button>
             </div>
           ) : (
-            <Pagination
-              className="mt-auto border-t border-(--border-divider)"
-              page={page.pageIndex + 1}
-              pageCount={pageCount}
-              onPageChange={(p) => {
-                onPageChange({ ...page, pageIndex: p - 1 })
+            <MobilePagination
+              pageIndex={page.pageIndex}
+              pageSize={page.pageSize}
+              total={result.total}
+              onChange={(p) => {
+                onPageChange(p)
                 window.scrollTo?.(0, 0)
               }}
-              totalItems={result.total}
-              pageSize={page.pageSize}
-              layout="input"
-              formatNumber={fmt}
             />
           )}
         </div>
@@ -257,6 +249,7 @@ function UserCard({ user, onOpen, onAction }: { user: User; onOpen: () => void; 
   const role = roleMeta[user.role]
   return (
     <li
+      data-reveal
       role="link"
       tabIndex={0}
       onClick={onOpen}

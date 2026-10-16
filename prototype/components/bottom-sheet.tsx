@@ -49,7 +49,7 @@ export function BottomSheet({ open, onOpenChange, title, leading = "close", onBa
                 </Button>
               ) : (
                 <DialogPrimitive.Close asChild>
-                  <Button variant="ghost" size="icon-sm" aria-label="Close">
+                  <Button type="button" variant="secondary" size="icon-sm" aria-label="Close" className="border-white/16 bg-transparent">
                     <Close />
                   </Button>
                 </DialogPrimitive.Close>

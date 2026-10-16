@@ -4,6 +4,11 @@
 /* Design system components live outside this app; let Tailwind see their classes. */
 @source "../../design-system/registry/iq/ui";
 
+/* Desktop layout from 1280 (tablet uses the mobile layout); see the scale rules further down. */
+@theme {
+  --breakpoint-lg: 80rem;
+}
+
 @theme inline {
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
@@ -444,19 +449,25 @@ html[data-input="pointer"] :is(button, a, [role="tab"], [role="checkbox"], [role
   from { opacity: 0; transform: scaleY(0.4); }
 }
 
-/* The whole admin at 90%, like the browser at 90% zoom (Davi, 15 Oct). Heights that fill the screen are divided
-   by the same factor so the layout still reaches the bottom edge. */
+/* r16 · Scale (Davi, 16 Oct): no zoom. Every length is rem (postcss-px-to-rem.mjs) and the root font-size scales
+   with the screen, so the whole UI shrinks together instead of things covering each other. Three breakpoints:
+   mobile < 768 (fluid from a 390 phone), tablet 768–1279 (100%, mobile layout), desktop ≥ 1280 (fluid: the layout
+   always sees at least 1600 css px, capped at the 90% the desktop was tuned at). */
 :root {
-  --ui-zoom: 0.9;
+  --ui-zoom: 1;
 }
-/* Zoom the app and portaled layers, but not the popper wrappers: Radix positions those from the (already zoomed)
-   trigger, so zooming them again would shift every dropdown. Their content is zoomed instead. */
-body > :not([data-radix-popper-content-wrapper]),
-[data-radix-popper-content-wrapper] > * {
-  zoom: var(--ui-zoom);
+html {
+  font-size: clamp(14px, calc(100vw / 390 * 16), 16px);
 }
-.h-dvh {
-  height: calc(100dvh / var(--ui-zoom));
+@media (min-width: 768px) {
+  html {
+    font-size: 16px;
+  }
+}
+@media (min-width: 1280px) {
+  html {
+    font-size: min(14.4px, calc(100vw / 1600 * 16));
+  }
 }
 @keyframes cell-in {
   from { opacity: 0; transform: scale(0.6); }
@@ -551,11 +562,7 @@ input, textarea, select, [contenteditable]:not([contenteditable="false"]) { care
   --border-divider: var(--primitive-neutral-750);
 }
 /* r13 · Mobile (below lg): real 100% size — the 90% desktop zoom would make 14px text 12.6px on a phone. */
-@media (max-width: 1023.98px) {
-  :root {
-    --ui-zoom: 1;
-  }
-}
+
 /* r13 · Mobile rules shared by every screen of the flow (same components, laid out for a phone). */
 .no-scrollbar {
   scrollbar-width: none;
@@ -563,7 +570,7 @@ input, textarea, select, [contenteditable]:not([contenteditable="false"]) { care
 .no-scrollbar::-webkit-scrollbar {
   display: none;
 }
-@media (max-width: 1023.98px) {
+@media (max-width: 1279.98px) {
   /* Tables (Figma mobile): no selection column; the row actions (⋮) are the last column and scroll with the row. */
   [data-slot="data-table"] :is(th, td):has([role="checkbox"]) {
     display: none;
@@ -578,7 +585,7 @@ input, textarea, select, [contenteditable]:not([contenteditable="false"]) { care
     display: none;
   }
 }
-@media (max-width: 1023.98px) {
+@media (max-width: 1279.98px) {
   /* KPI captions get two lines on a phone instead of an early ellipsis. */
   section[aria-label="Key numbers"] span.truncate {
     display: -webkit-box;
@@ -587,7 +594,7 @@ input, textarea, select, [contenteditable]:not([contenteditable="false"]) { care
     -webkit-line-clamp: 2;
   }
 }
-@media (max-width: 1023.98px) {
+@media (max-width: 1279.98px) {
   /* Compact stats (profile header, cash flow, engagement): two per row, dividers redrawn for the grid. */
   [data-slot="compact-stat"] {
     flex-basis: 50%;
@@ -601,13 +608,13 @@ input, textarea, select, [contenteditable]:not([contenteditable="false"]) { care
     border-top: 1px solid var(--border-divider);
   }
 }
-@media (max-width: 1023.98px) {
+@media (max-width: 1279.98px) {
   /* Field grids (Identity & verification): the narrow label width, so values like the email fit a phone row. */
   :root {
     --field-grid-label-width: var(--field-grid-label-width-narrow);
   }
 }
-@media (max-width: 1023.98px) {
+@media (max-width: 1279.98px) {
   /* Every toolbar on a phone: items flow in rows (search full width first), the actions (Export) close the last row. */
   [data-slot="toolbar"] {
     flex-wrap: wrap;
@@ -619,7 +626,7 @@ input, textarea, select, [contenteditable]:not([contenteditable="false"]) { care
     margin-left: auto;
   }
 }
-@media (max-width: 1023.98px) {
+@media (max-width: 1279.98px) {
   /* Toolbar search fields take the whole first row on a phone; the vertical dividers are a desktop-only rhythm. */
   [data-slot="toolbar-filters"] > :has(> [data-slot="search-bar"]) {
     width: 100%;
@@ -628,7 +635,7 @@ input, textarea, select, [contenteditable]:not([contenteditable="false"]) { care
     display: none;
   }
 }
-@media (max-width: 1023.98px) {
+@media (max-width: 1279.98px) {
   /* New trading account wizard on a phone: full screen, the step rail shrinks to a header (title + "Step n of 3"),
      one field per row, 16px gutters. Back / Next in the footer drive the steps. */
   [data-wizard] {
@@ -721,4 +728,122 @@ input, textarea, select, [contenteditable]:not([contenteditable="false"]) { care
 }
 @keyframes sheet-out {
   to { transform: translateY(100%); }
+}
+/* r16 · Tab bars never show a scrollbar (Figma: they just swipe); content scrollers keep the DS Scroll Bar. */
+[data-slot="tabs-line-list"] {
+  overflow-y: hidden;
+  scrollbar-width: none;
+}
+[data-slot="tabs-line-list"]::-webkit-scrollbar {
+  display: none;
+}
+@media (max-width: 1279.98px) {
+  /* Profile KPI row (Figma 3338:13828): fixed-width stats side by side, scrolling sideways. */
+  [data-kpi-scroll] [data-slot="compact-stat"] {
+    flex: 0 0 200px;
+    border-top: 0;
+    border-left-width: 1px;
+  }
+  [data-kpi-scroll] [data-slot="compact-stat"]:first-child {
+    border-left-width: 0;
+  }
+}
+
+/* r16 · Close buttons: modal and tray (DS, read-only) match the wizard close — 32px square, 1px stroke rgba(255,255,255,.16),
+   transparent fill, radius 2px, 16px icon, secondary-button hover. */
+[data-slot="modal-header"] > button,
+[data-slot="tray-header"] > div > div > div:last-child > span:last-child > button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  width: 32px;
+  height: 32px;
+  min-width: 32px;
+  padding: 0;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-radius: 2px;
+  background: transparent;
+  color: var(--content-default);
+  opacity: 1;
+  transition: color 100ms, background-color 100ms, border-color 100ms, box-shadow 100ms;
+}
+[data-slot="modal-header"] > button:hover,
+[data-slot="tray-header"] > div > div > div:last-child > span:last-child > button:hover {
+  border-color: var(--button-secondary-border-active);
+  background: var(--button-secondary-bg-hover);
+  opacity: 1;
+}
+[data-slot="modal-header"] > button:active,
+[data-slot="tray-header"] > div > div > div:last-child > span:last-child > button:active {
+  border-color: var(--button-secondary-border-active);
+  background: var(--button-secondary-bg-pressed);
+}
+[data-slot="modal-header"] > button svg,
+[data-slot="tray-header"] > div > div > div:last-child > span:last-child > button svg {
+  width: 16px;
+  height: 16px;
+}
+/* r16 · Test (Davi 16 Oct): DS Scroll Bar without the end arrows, on the profile KPI row only, to compare. */
+.scroll-no-arrows::-webkit-scrollbar-button {
+  display: none;
+  width: 0;
+  height: 0;
+}
+/* r16 · Profile KPI row: the scroller bleeds to the screen edges, so the bar's track is inset 16px on both sides
+   (same visual gap at the start and at the end of the scroll). */
+[data-kpi-scroll]::-webkit-scrollbar-track {
+  margin-inline: 16px;
+}
+/* r16 · Animated scroll (getartcraft.com/apps): Lenis on the app scroller + blocks that enter blurred, lower and
+   transparent, then settle (components/scroll-fx.tsx plays a Web Animation with the stagger delay). */
+.lenis.lenis-smooth {
+  scroll-behavior: auto !important;
+}
+.lenis.lenis-stopped {
+  overflow: clip;
+}
+[data-reveal] {
+  opacity: 0;
+  filter: blur(8px);
+  transform: translateY(28px);
+}
+@media (prefers-reduced-motion: reduce) {
+  [data-reveal] {
+    opacity: 1;
+    filter: none;
+    transform: none;
+    transition: none;
+  }
+}
+@media (max-width: 1279.98px) {
+  /* r16 · Tables with the mobile pager: the DS pagination inside the table is desktop only. */
+  [data-slot="table-with-pager"] [data-slot="pagination"] {
+    display: none;
+  }
+  /* r16 · Toolbar · Mobile inside a table: one row, 16px sides instead of 24 (more room for the search). */
+  [data-slot="data-table"] > :first-child:has([data-slot="mobile-toolbar"]) {
+    min-height: 0;
+    padding: 12px 16px;
+  }
+}
+@media (max-width: 1279.98px) {
+  /* r16 · Tables on a phone: the side strokes live on the scroll container, so both edges stay drawn while the
+     columns scroll sideways under them (the cells' own outer edges would scroll away or sit off-screen). */
+  [data-slot="data-table"] [data-slot="table-container"] {
+    border-inline: 1px solid var(--border-divider);
+  }
+  [data-slot="data-table"] :is(th, td):first-child {
+    border-left-color: transparent;
+  }
+  [data-slot="data-table"] :is(th, td):last-child {
+    border-right-color: transparent;
+  }
+}
+@media (max-width: 1279.98px) {
+  /* r16 · Two-line cells (Activity events: title + detail) breathe on a phone: 12px above and below. */
+  [data-slot="data-table"] tr:has([data-two-line]) td {
+    height: auto;
+    padding-block: 12px;
+  }
 }

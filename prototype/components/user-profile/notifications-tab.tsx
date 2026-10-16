@@ -7,7 +7,9 @@ import { notifications, type Notice } from "@/lib/users/profile"
 import { Badge, type BadgeColor } from "@/registry/iq/ui/badge"
 import { Button } from "@/registry/iq/ui/button"
 import { Dropdown } from "@/components/dropdown"
-import { createDataTableColumnHelper, DataTable } from "@/registry/iq/ui/data-table"
+import { createDataTableColumnHelper } from "@/registry/iq/ui/data-table"
+import { DataTable } from "@/components/data-table"
+import { MobileToolbar } from "@/components/mobile-toolbar"
 import { SearchBar } from "@/registry/iq/ui/search-bar"
 import { toast } from "@/registry/iq/ui/toast"
 import { Toolbar, ToolbarDivider } from "@/registry/iq/ui/toolbar"
@@ -78,6 +80,8 @@ const columns = col.columns([
 ])
 
 const ALL = "all"
+const TYPE_OPTIONS = [{ value: ALL, label: "All types" }, ...[...new Set(notifications.map((n) => n.type))].map((t) => ({ value: t, label: t }))]
+const STATUS_OPTIONS = [{ value: ALL, label: "All status" }, ...["Delivered", "Opened", "Pending", "Failed", "Bounced"].map((s) => ({ value: s, label: s }))]
 
 export function NotificationsTab() {
   const [search, setSearch] = React.useState("")
@@ -105,7 +109,19 @@ export function NotificationsTab() {
         pinnedRight={["actions"]}
         pagination={{ state: page, onChange: setPage, showPageSize: true, pageSizeOptions: [10, 25, 50], summary: `${rows.length} notifications` }}
         toolbar={
-          <Toolbar surface={false} className="w-full"
+          <>
+          <div className="w-full lg:hidden">
+            <MobileToolbar
+              search={{ value: search, onChange: setSearch, placeholder: "Reference, type, category…", label: "Search notifications" }}
+              filters={[
+                { key: "type", label: "Type", value: type, onChange: setType, options: TYPE_OPTIONS },
+                { key: "status", label: "Status", value: status, onChange: setStatus, options: STATUS_OPTIONS },
+              ]}
+              exportOptions={[{ value: "csv", label: `CSV · ${rows.length} notifications` }]}
+              onExport={() => toast.success(`Exported ${rows.length} notifications`, { description: "CSV downloaded" })}
+            />
+          </div>
+          <Toolbar surface={false} className="w-full max-lg:hidden"
             filters={
               <>
                 <div className="w-64">
@@ -118,7 +134,7 @@ export function NotificationsTab() {
                   size="sm"
                   search={false}
                   value={type}
-                  options={[{ value: ALL, label: "All types" }, ...[...new Set(notifications.map((n) => n.type))].map((t) => ({ value: t, label: t }))]}
+                  options={TYPE_OPTIONS}
                   onValueChange={setType}
                 />
                 <Dropdown
@@ -127,7 +143,7 @@ export function NotificationsTab() {
                   size="sm"
                   search={false}
                   value={status}
-                  options={[{ value: ALL, label: "All status" }, ...["Delivered", "Opened", "Pending", "Failed", "Bounced"].map((s) => ({ value: s, label: s }))]}
+                  options={STATUS_OPTIONS}
                   onValueChange={setStatus}
                 />
                 <Button variant="secondary" size="icon-sm" aria-label="Reset filters" onClick={reset}>
@@ -149,6 +165,7 @@ export function NotificationsTab() {
               />
             }
           />
+          </>
         }
         emptyState={{ title: "No notifications match", description: "Try another search or filter." }}
       />
