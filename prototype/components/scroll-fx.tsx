@@ -25,7 +25,8 @@ export function ScrollFX({ scroller }: { scroller: React.RefObject<HTMLElement |
           // A stable content box (app-shell `data-scroll-content`): a route root can be a 0-height sticky bar, which
           // made Lenis stop short of the end of the page.
           content: wrapper.querySelector<HTMLElement>(":scope > [data-scroll-content]") ?? wrapper,
-          lerp: 0.1,
+          // Barely noticeable, same as the DS docs (Davi, 17 Oct): follows the wheel almost 1:1.
+          lerp: 0.3,
           smoothWheel: true,
           autoRaf: true,
           // Let inner scrollers (lists, x-scrolling tables) scroll themselves.
