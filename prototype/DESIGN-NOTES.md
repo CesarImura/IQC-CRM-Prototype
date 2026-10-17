@@ -31,6 +31,10 @@ written to Figma; these are proposals.
 | Stat Card value | white 100% | `stat-card-value` = white 80% | DS |
 | Accounts panel | leading checkmark, "Any account" filled | trailing checkmark (Option Item) | DS |
 | User ID cell | Geist, truncated in the middle (`3083cd1f…ece3`) | Value Slot Mono exists for IDs | Geist, middle-truncated (matches screen) |
+| Button · Ghost (2026-10-17) | — | text color changes on hover only; pressed = `surface-soft` | white 6% fill on hover, 10% on pressed, full-white text (shadcn-like); CSS override in `app/globals.css`. Approved by Davi → take to the DS |
+| Back link "← Users" (2026-10-17) | plain link, text 70% | — | Button ghost sm, starting on the content edge |
+| Email cell (2026-10-17) | — | Value Link with `mailto:` | Value Link look; a click copies the address + toast "Email copied" (row doesn't open). Approved by Davi → copy variant in the DS |
+| Row actions ⋮ column (2026-10-17) | 64px | extra table width spreads to every column, ⋮ stretches | always 64px; extra width goes to the column before it (CSS in `app/globals.css`) |
 
 ## Added to the DS (branch `feat/users-screen-gaps` in `design-system/`)
 
