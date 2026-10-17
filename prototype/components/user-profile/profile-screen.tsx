@@ -101,7 +101,7 @@ export function ProfileScreen({ user }: { user: User }) {
       >
         <div className="mx-auto flex h-12 w-full max-w-[1544px] items-center gap-3 px-4 lg:gap-5 lg:px-14">
           <div className="flex w-[189px] shrink-0 items-center gap-2 text-sm max-lg:hidden">
-            <Button asChild variant="ghost" size="sm" className="-ml-(--button-size-sm-padding-x)">
+            <Button asChild variant="ghost" size="sm">
               <Link href="/customers/users" tabIndex={compact ? 0 : -1}>
                 <ArrowLeft size={16} />
                 Users
@@ -129,7 +129,7 @@ export function ProfileScreen({ user }: { user: User }) {
     <div data-page className="mx-auto flex w-full max-w-[1544px] flex-col gap-5 px-4 pt-8 pb-10 lg:px-14 lg:pt-10 lg:pb-14">
       {/* Figma Profile Header · Expanded (3165:86666): 40px top, actions centred on the name block. Mobile (3338:13713) keeps the same back link above the name. */}
       <header className="flex flex-col">
-        <Button asChild variant="ghost" size="sm" className="mb-4 -ml-(--button-size-sm-padding-x) w-fit">
+        <Button asChild variant="ghost" size="sm" className="mb-4 w-fit">
           <Link href="/customers/users">
             <ArrowLeft size={16} />
             Users
