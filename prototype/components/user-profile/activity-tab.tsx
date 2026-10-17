@@ -1,7 +1,7 @@
 "use client"
 
 import * as React from "react"
-import { Calendar, Laptop, Mobile, Screen } from "@carbon/icons-react"
+import { Calendar, Laptop, Mobile, Renew, Screen } from "@carbon/icons-react"
 
 import { accountLogs, activity, engagement, heatmap, sessions, staffLogs, weekdays, type AccountLog, type ActivityEvent } from "@/lib/users/profile"
 import { cn } from "@/lib/utils"
@@ -13,7 +13,7 @@ import { DataTable } from "@/components/data-table"
 import { MobileToolbar } from "@/components/mobile-toolbar"
 import { SearchBar } from "@/registry/iq/ui/search-bar"
 import { toast } from "@/registry/iq/ui/toast"
-import { Toolbar } from "@/registry/iq/ui/toolbar"
+import { Toolbar, ToolbarDivider } from "@/registry/iq/ui/toolbar"
 import { ValueDate, ValueText } from "@/registry/iq/ui/value-slot"
 import { Card, CompactStat, Muted, PeriodPills, Section } from "./shared"
 
@@ -403,6 +403,10 @@ function AccountLogs() {
   const rows = accountLogs.filter(
     (l) => (action === "all" || l.action === action) && (!search || `${l.account} ${l.reason}`.toLowerCase().includes(search.toLowerCase()))
   )
+  const reset = () => {
+    setSearch("")
+    setAction("all")
+  }
   return (
     <Section title="Account logs" info="What the risk engine did to this trader’s accounts. Staff actions are in Staff logs.">
       <DataTable
@@ -422,9 +426,10 @@ function AccountLogs() {
           <Toolbar surface={false} className="w-full max-lg:hidden"
             filters={
               <>
-                <div className="w-60 max-lg:w-full">
+                <div className="w-64">
                   <SearchBar placeholder="Search account or reason" aria-label="Search account logs" value={search} onValueChange={setSearch} />
                 </div>
+                <ToolbarDivider />
                 <Dropdown
                   label="Action"
                   hideLabel
@@ -434,6 +439,9 @@ function AccountLogs() {
                   options={LOG_ACTION_OPTIONS}
                   onValueChange={setAction}
                 />
+                <Button variant="secondary" size="icon-sm" aria-label="Reset filters" onClick={reset}>
+                  <Renew />
+                </Button>
               </>
             }
             actions={exportMenu(rows.length, "logs")}
@@ -495,6 +503,11 @@ function Timeline() {
       (kind === "all" || (kind === "system" ? e.actor === "System" : kind === "staff" ? e.actor.includes("(admin)") : !e.actor.includes("(admin)") && e.actor !== "System")) &&
       (!search || `${e.title} ${e.detail} ${e.link}`.toLowerCase().includes(search.toLowerCase()))
   )
+  const reset = () => {
+    setSearch("")
+    setKind("all")
+    setPeriod("12m")
+  }
   return (
     <Section title="Activity">
       <DataTable
@@ -517,9 +530,10 @@ function Timeline() {
           <Toolbar surface={false} className="w-full max-lg:hidden"
             filters={
               <>
-                <div className="w-60 max-lg:w-full">
+                <div className="w-64">
                   <SearchBar placeholder="Search events" aria-label="Search events" value={search} onValueChange={setSearch} />
                 </div>
+                <ToolbarDivider />
                 <Dropdown
                   label="Actor"
                   hideLabel
@@ -536,6 +550,9 @@ function Timeline() {
                   value={period}
                   onValueChange={setPeriod}
                 />
+                <Button variant="secondary" size="icon-sm" aria-label="Reset filters" onClick={reset}>
+                  <Renew />
+                </Button>
               </>
             }
             actions={exportMenu(rows.length, "events")}

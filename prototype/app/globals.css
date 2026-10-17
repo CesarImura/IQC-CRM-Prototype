@@ -857,3 +857,9 @@ input, textarea, select, [contenteditable]:not([contenteditable="false"]) { care
 [data-slot="data-table"]:not([data-page="flush"] *) :is(th, td):last-child {
   border-right-color: transparent;
 }
+
+/* Row actions column (⋮) keeps its 64px in every table: when the columns don't fill the table, the extra width goes
+   to the column before it (auto), never to the ⋮ cell (Users list is the reference). */
+[data-slot="data-table"] thead th:has(+ th.sticky.right-0:last-child) {
+  width: auto !important;
+}

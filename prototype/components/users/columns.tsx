@@ -8,7 +8,7 @@ import { ActionMenu, type ActionItem } from "@/components/dropdown"
 import { createDataTableColumnHelper } from "@/registry/iq/ui/data-table"
 import { Pill } from "@/registry/iq/ui/pill"
 import { StatusDot, type StatusTone } from "@/registry/iq/ui/status-dot"
-import { ValueNumber, ValueText } from "@/registry/iq/ui/value-slot"
+import { ValueLink, ValueNumber, ValueText } from "@/registry/iq/ui/value-slot"
 
 export const statusMeta: Record<UserStatus, { label: string; color: BadgeColor }> = {
   active: { label: "Active", color: "green" },
@@ -58,7 +58,15 @@ export function getUserColumns(onAction: (user: User, action: RowAction) => void
       enableSorting: false,
       cell: (info) => <ValueText title={info.getValue()}>{shortId(info.getValue())}</ValueText>,
     }),
-    col.accessor("email", { header: "Email", size: 230, cell: (info) => <ValueText>{info.getValue()}</ValueText> }),
+    col.accessor("email", {
+      header: "Email",
+      size: 230,
+      cell: (info) => (
+        <ValueLink href={`mailto:${info.getValue()}`} onClick={(e) => e.stopPropagation()}>
+          {info.getValue()}
+        </ValueLink>
+      ),
+    }),
     col.accessor("name", { header: "Name", size: 160, cell: (info) => <ValueText>{info.getValue()}</ValueText> }),
     col.accessor("username", { header: "Username", size: 140, cell: (info) => <ValueText>{info.getValue()}</ValueText> }),
     col.accessor("accounts", { header: "Accounts", size: 120, cell: (info) => <ValueNumber>{info.getValue()}</ValueNumber> }),
