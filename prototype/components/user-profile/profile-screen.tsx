@@ -101,10 +101,12 @@ export function ProfileScreen({ user }: { user: User }) {
       >
         <div className="mx-auto flex h-12 w-full max-w-[1544px] items-center gap-3 px-4 lg:gap-5 lg:px-14">
           <div className="flex w-[189px] shrink-0 items-center gap-2 text-sm max-lg:hidden">
-            <Link href="/customers/users" tabIndex={compact ? 0 : -1} className="flex items-center gap-2 font-medium text-white/70 hover:text-white">
-              <ArrowLeft size={16} />
-              Users
-            </Link>
+            <Button asChild variant="ghost" size="sm" className="-ml-(--button-size-sm-padding-x)">
+              <Link href="/customers/users" tabIndex={compact ? 0 : -1}>
+                <ArrowLeft size={16} />
+                Users
+              </Link>
+            </Button>
             <span className="text-(color:--content-tertiary)">/</span>
             <span className="truncate font-medium text-(color:--content-tertiary)">{user.name}</span>
           </div>
@@ -127,13 +129,12 @@ export function ProfileScreen({ user }: { user: User }) {
     <div data-page className="mx-auto flex w-full max-w-[1544px] flex-col gap-5 px-4 pt-8 pb-10 lg:px-14 lg:pt-10 lg:pb-14">
       {/* Figma Profile Header · Expanded (3165:86666): 40px top, actions centred on the name block. Mobile (3338:13713) keeps the same back link above the name. */}
       <header className="flex flex-col">
-        <Link
-          href="/customers/users"
-          className="mb-4 flex h-8 w-fit items-center gap-2 rounded-[2px] text-sm font-medium text-white/70 outline-none hover:text-white focus-visible:shadow-[0_0_0_var(--focus-spread)_var(--focus-ring)]"
-        >
-          <ArrowLeft size={16} />
-          Users
-        </Link>
+        <Button asChild variant="ghost" size="sm" className="mb-4 -ml-(--button-size-sm-padding-x) w-fit">
+          <Link href="/customers/users">
+            <ArrowLeft size={16} />
+            Users
+          </Link>
+        </Button>
         <div className="flex flex-wrap items-center justify-between gap-4">
           <div className="flex min-w-0 flex-col">
             <h1 className="truncate text-2xl leading-[1.5] font-medium text-white/80">{user.name}</h1>

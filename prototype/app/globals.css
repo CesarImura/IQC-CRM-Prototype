@@ -863,3 +863,20 @@ input, textarea, select, [contenteditable]:not([contenteditable="false"]) { care
 [data-slot="data-table"] thead th:has(+ th.sticky.right-0:last-child) {
   width: auto !important;
 }
+
+/* Ghost button (shadcn-like): a soft fill on hover and a stronger one when pressed; size, radius and type stay DS.
+   The DS Button has no data-variant, so ghost is matched by its pressed-token class. TODO: move into the DS variant. */
+:root {
+  --button-ghost-bg-hover: rgb(255 255 255 / 0.06);
+  --button-ghost-bg-pressed: rgb(255 255 255 / 0.1);
+}
+@media (hover: hover) {
+  [data-slot="button"][class*="button-ghost-bg-pressed"]:hover:not(:disabled, [data-disabled="true"]) {
+    background-color: var(--button-ghost-bg-hover);
+    color: var(--button-neutral-content-default);
+  }
+}
+[data-slot="button"][class*="button-ghost-bg-pressed"]:active:not(:disabled, [data-disabled="true"]) {
+  background-color: var(--button-ghost-bg-pressed);
+  color: var(--button-neutral-content-default);
+}
