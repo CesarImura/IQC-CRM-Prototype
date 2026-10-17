@@ -494,7 +494,7 @@ tbody tr[tabindex] {
 }
 
 /* One stroke between the Sub Menu and the content: the Sub Menu draws it; content blocks drop their left stroke. */
-[data-shell-nav] + div > [data-page="flush"] :is(
+[data-shell-nav] + div [data-page="flush"] :is(
   section[aria-label="Key numbers"] > :first-child,
   [data-slot="tabs-line-list"],
   [data-slot="toolbar"],
@@ -504,7 +504,7 @@ tbody tr[tabindex] {
 ) {
   border-left-color: transparent;
 }
-[data-shell-nav] + div > [data-page="flush"] [data-slot="data-table"] :is(th, td):first-child {
+[data-shell-nav] + div [data-page="flush"] [data-slot="data-table"] :is(th, td):first-child {
   border-left-color: transparent;
 }
 /* r8 */
