@@ -81,7 +81,7 @@ export function UsersMobile(props: UsersMobileProps) {
   const open = (u: User) => router.push(`/customers/users/${u.id}`)
 
   return (
-    <div data-slot="users-mobile" className="flex min-h-full flex-col lg:hidden">
+    <div data-slot="users-mobile" data-touch-actions="" className="flex min-h-full flex-col lg:hidden">
       {/* Page header: eyebrow, title, period and Add User on one row. */}
       <header className="flex flex-col gap-1.5 px-4 pt-5 pb-3">
         <p className="text-xs leading-[18px] text-(color:--content-muted)">Customers &amp; transactions</p>

@@ -229,7 +229,7 @@ export function AccountsScreen() {
   return (
     <div data-page="flush" className="flex min-h-full flex-col">
       {/* ── Phone (same pattern as Users mobile) ── */}
-      <div data-slot="accounts-mobile" className="flex min-h-full flex-col lg:hidden">
+      <div data-slot="accounts-mobile" data-touch-actions="" className="flex min-h-full flex-col lg:hidden">
         <header className="flex flex-col gap-1.5 px-4 pt-5 pb-3">
           <p className="text-xs leading-[18px] text-(color:--content-muted)">Customers &amp; transactions</p>
           <div className="flex items-center gap-2">

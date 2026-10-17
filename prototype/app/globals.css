@@ -890,6 +890,13 @@ input, textarea, select, [contenteditable]:not([contenteditable="false"]) { care
   [data-touch-actions] {
     --button-size-sm-height: 40px;
   }
+  /* Users / Accounts mobile: the view switch (Tab Pill sm) matches the 40px buttons beside it. */
+  [data-touch-actions] [data-slot="tabs-pill-list"] {
+    height: var(--button-size-sm-height);
+  }
+  [data-touch-actions] [data-slot="tabs-pill-trigger"] {
+    height: 100%;
+  }
   /* Profile tabs start on the content edge: no bar padding, no outer padding on the first and last tab. */
   [data-edge-tabs] {
     padding-inline: 0;
