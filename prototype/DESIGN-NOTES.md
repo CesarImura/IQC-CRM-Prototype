@@ -54,3 +54,12 @@ written to Figma; these are proposals.
 - Selection Bar actions (Export, Suspend, Ban).
 - Export options (CSV of all results / selected rows).
 - Period picker "All time" uses the DS Date Picker (range); there's no preset list (Today, Last 7 days…) in Figma.
+
+## 17/10 · Touch layouts and new screens (Davi, local, not published)
+
+- **DS rule proposal · table rows on touch:** below 1280px every Data Table row is **56px** tall (`--table-cell-height` 48 → 56) so a finger hits one row. Desktop stays 48. Needs a token or variant in the DS.
+- **Buttons on touch (test):** profile header actions and section actions (`[data-touch-actions]`) are **40px** tall below 1280 (DS sm = 32). Replaces the 15/10 decision "buttons keep 32px on mobile" if Davi approves.
+- **Pagination · Mobile:** "Rows [25]" · up to 3 page numbers + "…" · ← → as stroked icon buttons (same look as the drawer/modal X). Prototype-only variant.
+- **Profile mobile:** key numbers above the tabs (tabs only head their content); scrollbar 4px under the cards; the tab bar starts on the content edge (no bar padding, first tab without left padding, last without right).
+- **Profile status notice:** DS Alert under the header for every non-clean profile (Banned = Destructive; Suspended and KYC pending / not started = Default with a yellow warning icon, KYC shows a checklist of the registration items) + a Status Badge next to the name. The DS Alert has no Warning tone yet.
+- **Accounts list** (`/customers/accounts`, Figma section 4333:112751): 6 tabs, KPIs per tab, per-tab columns from the Figma header rows. The 16px ring (`MiniRing`) and the strikes dashes (`Segments`) are drawn in the prototype; the DS has no mini ring or segment meter yet. Rows open `/customers/accounts/[id]`: one profile layout for every type (header with owner pill, status alert, KPI strip, 4 meters, Overview · Report · Historical tabs, Snapshots with the DS Balance Range Chart, Recent trades, Rule compliance / Payout readiness, Risk logs, Admin notes, Account setup, Account economics) and the overlays Extend expiry / Extend renewal / Reset / Change rule limits / Disable / Enable with toast + Undo. Report and Historical are empty states (not designed).

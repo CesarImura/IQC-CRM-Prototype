@@ -11,6 +11,7 @@ import { identity, lastActivity, PROFILE_TABS, type ProfileTab } from "@/lib/use
 import { Button } from "@/registry/iq/ui/button"
 import { ActionMenu, type ActionItem } from "@/components/dropdown"
 import { cn } from "@/lib/utils"
+import { Badge } from "@/registry/iq/ui/badge"
 import { StatusDot } from "@/registry/iq/ui/status-dot"
 import { Tabs, TabsContent, TabsLineList, TabsLineTrigger } from "@/registry/iq/ui/tabs"
 import { toast } from "@/registry/iq/ui/toast"
@@ -19,7 +20,9 @@ import { NotificationsTab } from "./notifications-tab"
 import { NewAccountWizard } from "./new-account-wizard"
 import { OverviewTab } from "./overview-tab"
 import { SubscriptionsTab } from "./subscriptions-tab"
+import { statusMeta } from "@/components/users/columns"
 import { CompactStat, Card } from "./shared"
+import { StatusNotice } from "./status-notice"
 import { TradingTab } from "./trading-tab"
 
 // Figma: Actions · panel of the User Profile — everyday actions on the left, risk and blocking on the right.
@@ -43,7 +46,7 @@ const actionLabel = (v: string) => ACTION_SECTIONS.flat().find((a) => a.value ==
 
 function ProfileActions({ user, compact = false, onNewAccount }: { user: User; compact?: boolean; onNewAccount: () => void }) {
   return (
-    <div className={cn("flex shrink-0 items-center gap-2", !compact && "max-lg:w-full max-lg:flex-row-reverse")}>
+    <div data-touch-actions={compact ? undefined : ""} className={cn("flex shrink-0 items-center gap-2", !compact && "max-lg:w-full max-lg:flex-row-reverse")}>
       <ActionMenu label="Actions" columns sections={ACTION_SECTIONS} onSelect={(v) => (v === "new-account" ? onNewAccount() : toast.info(`${actionLabel(v)} isn’t in this prototype yet`))} />
       <Button variant="secondary" size="sm" onClick={() => toast.info("Edit user isn’t in this prototype yet")}>
         Edit user
@@ -137,7 +140,10 @@ export function ProfileScreen({ user }: { user: User }) {
         </Button>
         <div className="flex flex-wrap items-center justify-between gap-4">
           <div className="flex min-w-0 flex-col">
-            <h1 className="truncate text-2xl leading-[1.5] font-medium text-white/80">{user.name}</h1>
+            <div className="flex min-w-0 items-center gap-3">
+              <h1 className="truncate text-2xl leading-[1.5] font-medium text-white/80">{user.name}</h1>
+              <Badge color={statusMeta[user.status].color} className="shrink-0">{statusMeta[user.status].label}</Badge>
+            </div>
             <span className="text-sm leading-normal text-white/50">{user.email}</span>
             <div className="flex flex-wrap items-center gap-4 pt-2 pb-4 text-sm max-lg:gap-x-4 max-lg:gap-y-0.5 max-lg:pt-4 [&_[data-slot=status-dot]]:gap-2 [&_[data-slot=status-dot]]:text-sm [&_[data-slot=status-dot]]:font-medium [&_[data-slot=status-dot]]:text-white/50">
               <StatusDot tone={user.verification === "verified" ? "positive" : "warning"} className="">
@@ -156,28 +162,32 @@ export function ProfileScreen({ user }: { user: User }) {
         </div>
       </header>
 
+      <StatusNotice user={user} />
+
       <Card aria-label="Key numbers" className="flex flex-wrap max-lg:hidden">
         {moneyProfile(user.id).header.map((k) => (
           <CompactStat key={k.title} title={k.title} value={k.value} caption={k.caption} tone={k.tone} />
         ))}
       </Card>
 
+      {/* Mobile (Davi 17/10): the key numbers sit above the tabs, in one row that scrolls sideways, so the tabs only
+          head the content they switch. Scrollbar close to the cards (pb-1). */}
+      <div data-kpi-scroll className="scroll-no-arrows -mx-4 overflow-x-auto px-4 pb-1 lg:hidden">
+        <Card aria-label="Key numbers" className="flex w-max">
+          {moneyProfile(user.id).header.map((k) => (
+            <CompactStat key={k.title} title={k.title} value={k.value} caption={k.caption} tone={k.tone} />
+          ))}
+        </Card>
+      </div>
+
       <Tabs value={tab} onValueChange={setTab} className="gap-8">
-        <TabsLineList ref={tabsRef} aria-label="Profile sections">
+        <TabsLineList ref={tabsRef} aria-label="Profile sections" data-edge-tabs>
           {PROFILE_TABS.map((t) => (
             <TabsLineTrigger key={t.value} value={t.value} tone="accent">
               {t.label}
             </TabsLineTrigger>
           ))}
         </TabsLineList>
-        {/* Mobile (Figma KPI scroll): the key numbers sit under the tabs, in one row that scrolls sideways. */}
-        <div data-kpi-scroll className="scroll-no-arrows -mx-4 -mt-4 overflow-x-auto px-4 pb-3 lg:hidden">
-          <Card aria-label="Key numbers" className="flex w-max">
-            {moneyProfile(user.id).header.map((k) => (
-              <CompactStat key={k.title} title={k.title} value={k.value} caption={k.caption} tone={k.tone} />
-            ))}
-          </Card>
-        </div>
         <TabsContent value="overview">
           <OverviewTab user={user} />
         </TabsContent>

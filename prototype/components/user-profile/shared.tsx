@@ -36,6 +36,7 @@ export function Section({
         </div>
         {actions && (
           <div
+            data-touch-actions
             className={cn(
               "flex flex-wrap items-center gap-2",
               swipe && "max-lg:[scrollbar-width:none] max-lg:[&::-webkit-scrollbar]:hidden max-lg:-mx-4 max-lg:basis-[calc(100%+2rem)] max-lg:flex-nowrap max-lg:overflow-x-auto max-lg:px-4 max-lg:[&>*]:shrink-0"

@@ -880,3 +880,24 @@ input, textarea, select, [contenteditable]:not([contenteditable="false"]) { care
   background-color: var(--button-ghost-bg-pressed);
   color: var(--button-neutral-content-default);
 }
+
+/* 17/10 · Touch layouts (< 1280): table rows 56px tall so a finger hits one row (DS rule proposal, DESIGN-NOTES). */
+@media (max-width: 1279.98px) {
+  html:root {
+    --table-cell-height: 56px;
+  }
+  /* Profile header actions and section actions: 40px tall on a phone (test, Davi 17/10). */
+  [data-touch-actions] {
+    --button-size-sm-height: 40px;
+  }
+  /* Profile tabs start on the content edge: no bar padding, no outer padding on the first and last tab. */
+  [data-edge-tabs] {
+    padding-inline: 0;
+  }
+  [data-edge-tabs] > [data-slot="tabs-line-trigger"]:first-child {
+    padding-left: 0;
+  }
+  [data-edge-tabs] > [data-slot="tabs-line-trigger"]:last-child {
+    padding-right: 0;
+  }
+}

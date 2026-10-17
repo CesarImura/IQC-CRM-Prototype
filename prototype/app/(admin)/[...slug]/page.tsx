@@ -7,7 +7,7 @@ export const dynamicParams = true
 export function generateStaticParams() {
   return allSections
     .flatMap((s) => [s.href, ...s.groups.flatMap((g) => g.links.map((l) => l.href))])
-    .filter((href) => href.startsWith("/") && href !== "/customers/users" && href !== "/")
+    .filter((href) => href.startsWith("/") && href !== "/customers/users" && href !== "/customers/accounts" && href !== "/")
     .map((href) => ({ slug: href.split("/").filter(Boolean) }))
 }
 
